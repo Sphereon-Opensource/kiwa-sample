@@ -1,0 +1,81 @@
+[versions]
+kotlin-inject = "0.8.1-SNAPSHOT"
+anvil = "0.1.6"
+sphereon-plugin = "0.0.7-SNAPSHOT"
+app-platform = "0.0.9-SNAPSHOT"
+kotlin = "2.2.20"
+sphereon-idk = "0.9.0-SNAPSHOT"
+kiwa-holder-sdk = "0.5.0-SNAPSHOT"
+detekt = "1.23.8"
+kottage = "1.8.0"
+multiplatform-settings = "1.3.0"
+qrcode-kotlin = "4.5.0"
+junit-ktx = "1.3.0"
+rules = "1.7.0"
+collection = "1.5.0"
+dokka = "2.0.0"
+
+[libraries]
+kotlin-inject-compiler-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject" }
+kotlin-inject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject" }
+kotlin-inject-runtime-kmp = { module = "me.tatarka.inject:kotlin-inject-runtime-kmp", version.ref = "kotlin-inject" }
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+anvil-runtime = { module = "software.amazon.lastmile.kotlin.inject.anvil:runtime", version.ref = "anvil" }
+anvil-runtime-optional = { module = "software.amazon.lastmile.kotlin.inject.anvil:runtime-optional", version.ref = "anvil" }
+anvil-compiler-ksp = { module = "software.amazon.lastmile.kotlin.inject.anvil:compiler", version.ref = "anvil" }
+#amz-kotlin-inject-contribute-public = { module = "software.amazon.app.platform:kotlin-inject-contribute-public", version.ref = "app-platform"}
+
+amz-kotlin-inject-public = { module = "software.amazon.app.platform:kotlin-inject-public", version.ref = "app-platform" }
+amz-kotlin-inject-impl = { module = "software.amazon.app.platform:kotlin-inject-impl", version.ref = "app-platform" }
+amz-kotlin-scope-public = { module = "software.amazon.app.platform:scope-public", version.ref = "app-platform" }
+amz-kotlin-inject-contribute-public = { module = "software.amazon.app.platform:kotlin-inject-contribute-public", version.ref = "app-platform" }
+amz-app-platform-presenter-molecule-impl = { module = "software.amazon.app.platform:presenter-molecule-impl", version.ref = "app-platform" }
+amz-app-platform-presenter-molecule-public = { module = "software.amazon.app.platform:presenter-molecule-public", version.ref = "app-platform" }
+amz-app-platform-renderer-compose-public = { module = "software.amazon.app.platform:renderer-compose-multiplatform-public", version.ref = "app-platform" }
+amz-di-common-public = { module = "software.amazon.app.platform:di-common-public", version.ref = "app-platform"}
+amz-kotlin-inject-contribute-code-generators = { module = "software.amazon.app.platform:kotlin-inject-contribute-impl-code-generators", version.ref = "app-platform" }
+
+sphereon-common-bom = { module = "com.sphereon.gradle:common-bom", version.ref = "sphereon-plugin" }
+sphereon-library-bom = { module = "com.sphereon.gradle:library-bom", version.ref = "sphereon-plugin" }
+sphereon-compat = { module = "com.sphereon.idk:lib-core-compat", version.ref = "sphereon-idk" }
+sphereon-crypto = { module = "com.sphereon.idk:lib-crypto-core", version.ref = "sphereon-idk" }
+sphereon-crypto-kms = { module = "com.sphereon.idk:lib-crypto-kms-common", version.ref = "sphereon-idk" }
+sphereon-crypto-kms-software = { module = "com.sphereon.idk:lib-crypto-kms-provider-software", version.ref = "sphereon-idk" }
+sphereon-cbor = { module = "com.sphereon.idk:lib-cbor", version.ref = "sphereon-idk" }
+sphereon-mdoc-core = { module = "com.sphereon.idk:lib-mdoc-core", version.ref = "sphereon-idk" }
+sphereon-mdoc-datatransfer = { module = "com.sphereon.idk:lib-mdoc-datatransfer", version.ref = "sphereon-idk" }
+sphereon-core-api-public = { module = "com.sphereon.idk:lib-core-api-public", version.ref = "sphereon-idk" }
+sphereon-core-api-default = { module = "com.sphereon.idk:lib-core-api-default", version.ref = "sphereon-idk" }
+sphereon-core-logger-console = { module = "com.sphereon.idk:lib-core-loggers-console-logger", version.ref = "sphereon-idk" }
+sphereon-core-logger-mobile = { module = "com.sphereon.idk:lib-core-loggers-mobile-logger", version.ref = "sphereon-idk" }
+sphereon-ktor-httpclient = { module = "com.sphereon.idk:lib-http-ktor-http-client", version.ref = "sphereon-idk" }
+sphereon-data-link-ble-public = { module = "com.sphereon.idk:lib-data-link-ble-public", version.ref = "sphereon-idk" }
+sphereon-data-link-nfc-impl = { module = "com.sphereon.idk:lib-data-link-nfc-impl", version.ref = "sphereon-idk" }
+sphereon-data-link-nfc-public = { module = "com.sphereon.idk:lib-data-link-nfc-public", version.ref = "sphereon-idk" }
+
+kiwa-holder-sdk-public = { module = "com.sphereon.kiwa:kiwa-holder-sdk-public", version.ref = "kiwa-holder-sdk"}
+kiwa-holder-sdk-impl = { module = "com.sphereon.kiwa:kiwa-holder-sdk-impl", version.ref = "kiwa-holder-sdk"}
+
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+
+kottage = { module = "io.github.irgaly.kottage:kottage", version.ref = "kottage" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
+multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
+qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode-kotlin" }
+junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junit-ktx" }
+rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
+collection = { module = "androidx.collection:collection", version.ref = "collection" }
+
+[bundles]
+kotlin-inject = [
+    "amz-kotlin-inject-public",
+    "amz-kotlin-inject-contribute-public",
+    "amz-di-common-public",
+    "anvil-runtime",
+    "anvil-runtime-optional",
+    "kotlin-inject-runtime-kmp",
+    "amz-kotlin-scope-public"
+]
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

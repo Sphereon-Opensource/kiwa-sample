@@ -1,0 +1,19 @@
+*.iml
+.gradle
+.idea
+.DS_Store
+build
+captures
+.externalNativeBuild
+.cxx
+local.properties
+xcuserdata
+.kotlin
+#So we don't accidentally commit our private keys
+*.gpg
+!/gradle/wrapper/gradle-wrapper.jar
+/sdks/kiwa/elicense/openapi/license-holder/src/commonMain/kotlin/com/sphereon/kiwa/openapi
+/sdks/kiwa/elicense/openapi/authentication/src/commonMain/kotlin/com/sphereon/kiwa/openapi
+
+# Detekt reports
+**/build/reports/detekt/
