@@ -19,15 +19,13 @@
 
 
 allprojects {
-    group = "com.sphereon.kiwa.example"
+    group = "com.sphereon.kiwa.sample"
     version = "0.1.0-SNAPSHOT"
-//    val npmVersion by extra { getNpmVersion() }
 
     plugins.withType<MavenPublishPlugin> {
         configure<PublishingExtension> {
             repositories {
                 maven {
-                    // Repo does not exist. On purpose for now!!
                     name = "sphereon"
                     val snapshotsUrl = "https://nexus.sphereon.com/repository/sphereon-opensource-snapshots/"
                     val releasesUrl = "https://nexus.sphereon.com/repository/sphereon-opensource-releases/"
@@ -36,16 +34,6 @@ allprojects {
                         username = System.getenv("NEXUS_USERNAME")
                         password = System.getenv("NEXUS_PASSWORD")
                     }
-                }
-            }
-
-            // Ensure unique coordinates for different publication types
-            publications.withType<MavenPublication> {
-                val publicationName = name
-               /* if (publicationName == "kotlinMultiplatform") {
-                    artifactId = "${project.name}-multiplatform"
-                } else */if (publicationName == "mavenKotlin") {
-                    artifactId = "${project.name}-jvm"
                 }
             }
         }
@@ -66,7 +54,6 @@ plugins {
     alias(sphereonplug.plugins.dev.petuska.npm.publish.dev.petuska.npm.publish.gradle.plugin) apply false
     alias(sphereonplug.plugins.software.amazon.app.platform) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlinx.atomicfu) apply false
-//    kotlin("jvm") version libs.versions.kotlin
     alias(sphereonplug.plugins.sphereon.gradle.plugin.conventions) apply false
     alias(sphereonplug.plugins.sphereon.gradle.plugin.integration.tests) apply false
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication) apply false
@@ -79,9 +66,16 @@ plugins {
 
 
 val detektVersion = libs.versions.detekt.get()
-val detektIncluded = setOf(
-    ":sdks:holder:sdk:kiwa-holder-sdk-public",
-    ":sdks:holder:sdk:kiwa-holder-sdk-impl",
+val detektIncluded = setOf(""
+  /*  ":example:holder:app:kiwa-example-holder-app-composeApp",
+    ":example:holder:ui:auth:kiwa-example-holder-ui-auth-public"    ,
+    ":example:holder:ui:auth:kiwa-example-holder-ui-auth-impl",
+    ":example:holder:ui:core:kiwa-example-holder-ui-core-public",
+    ":example:holder:ui:core:kiwa-example-holder-ui-core-impl",
+    ":example:holder:ui:card:kiwa-example-holder-ui-card-public",
+    ":example:holder:ui:card:kiwa-example-holder-ui-card-impl",
+    ":example:holder:ui:elicense:kiwa-example-holder-ui-elicense-public",
+    ":example:holder:ui:elicense:kiwa-example-holder-ui-elicense-impl",*/
 )
 
 

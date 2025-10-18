@@ -68,6 +68,7 @@ kotlin {
             api(libs.bundles.kotlin.inject)
             api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
             api(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
+            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation("com.russhwolf:multiplatform-settings:1.3.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
             implementation("com.russhwolf:multiplatform-settings-coroutines:1.3.0")
@@ -82,11 +83,10 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
         }
     }
-
 }
 
 android {
-    namespace = "com.sphereon.ui.auth.impl"
+    namespace = "com.sphereon.kiwa.sample.ui.auth.impl"
     compileSdk = 36
 
     packaging {
@@ -112,35 +112,22 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
-
 ksp {
     // We are using the Amazon App Platform binding processor instead!
     arg("software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
 }
 
+fun DependencyHandlerScope.addKspDependencies(configName: String) {
+    val kspConfig = "ksp$configName"
+    addProvider(kspConfig, libs.kotlin.inject.compiler.ksp)
+    add(kspConfig, libs.amz.kotlin.inject.contribute.public)
+    add(kspConfig, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspConfig, libs.anvil.compiler.ksp)
+}
+
 dependencies {
-    /*addProvider("ksp", libs.kotlin.inject.compiler.ksp)
-    add("ksp", libs.amz.kotlin.inject.contribute.public)
-    add("ksp", libs.amz.kotlin.inject.contribute.code.generators)
-    add("ksp", libs.anvil.compiler.ksp)*/
-
-    addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspDesktop", libs.anvil.compiler.ksp)
-
-    addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroid", libs.anvil.compiler.ksp)
-
-    addProvider("kspAndroidDebug", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidDebug", libs.anvil.compiler.ksp)
-
-    addProvider("kspAndroidTest", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidTest", libs.anvil.compiler.ksp)
+    val kspConfigurations = listOf("Desktop", "Android", "AndroidDebug", "AndroidTest")
+    kspConfigurations.forEach { configName ->
+        addKspDependencies(configName)
+    }
 }

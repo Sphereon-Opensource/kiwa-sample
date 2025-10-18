@@ -1,5 +1,4 @@
-/*
- * © 2025 Sphereon International B.V.
+/* Â© 2025 Sphereon International B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,15 +133,14 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
         }
     }
-
 }
 
 android {
-    namespace = "com.sphereon.ui.elicense.engagement.impl"
+    namespace = "com.sphereon.kiwa.sample.ui.elicense.engagement.impl"
     compileSdk = 36
 
     /*defaultConfig {
-        applicationId = "com.sphereon.mdoc.testapp"
+        applicationId = "com.sphereon.kiwa.sample.app"
         minSdk = 30
 //        targetSdk = 35
         versionCode = 1
@@ -173,17 +171,16 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.sphereon.mdoc.testapp.MainKt"
+        mainClass = "com.sphereon.kiwa.sample.app.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.sphereon.mdoc.testapp"
+            packageName = "com.sphereon.kiwa.sample.app"
             packageVersion = "1.0.0"
         }
     }
 }
 */
-
 
 ksp {
     // We are using the Amazon App Platform binding processor instead!
@@ -191,28 +188,28 @@ ksp {
 }
 
 dependencies {
-    /*       addProvider("ksp", libs.kotlin.inject.compiler.ksp)
-           add("ksp", libs.amz.kotlin.inject.contribute.public)
-           add("ksp", libs.amz.kotlin.inject.contribute.code.generators)
-           add("ksp", libs.anvil.compiler.ksp)*/
+    val kspDesktopConfig = "kspDesktop"
+    val kspAndroidConfig = "kspAndroid"
+    val kspAndroidDebugConfig = "kspAndroidDebug"
+    val kspAndroidTestConfig = "kspAndroidTest"
 
-    addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspDesktop", libs.anvil.compiler.ksp)
+    addProvider(kspDesktopConfig, libs.kotlin.inject.compiler.ksp)
+    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.public)
+    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspDesktopConfig, libs.anvil.compiler.ksp)
 
-    addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroid", libs.anvil.compiler.ksp)
+    addProvider(kspAndroidConfig, libs.kotlin.inject.compiler.ksp)
+    add(kspAndroidConfig, libs.amz.kotlin.inject.contribute.public)
+    add(kspAndroidConfig, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspAndroidConfig, libs.anvil.compiler.ksp)
 
-    addProvider("kspAndroidDebug", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidDebug", libs.anvil.compiler.ksp)
+    addProvider(kspAndroidDebugConfig, libs.kotlin.inject.compiler.ksp)
+    add(kspAndroidDebugConfig, libs.amz.kotlin.inject.contribute.public)
+    add(kspAndroidDebugConfig, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspAndroidDebugConfig, libs.anvil.compiler.ksp)
 
-    addProvider("kspAndroidTest", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidTest", libs.anvil.compiler.ksp)
+    addProvider(kspAndroidTestConfig, libs.kotlin.inject.compiler.ksp)
+    add(kspAndroidTestConfig, libs.amz.kotlin.inject.contribute.public)
+    add(kspAndroidTestConfig, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspAndroidTestConfig, libs.anvil.compiler.ksp)
 }

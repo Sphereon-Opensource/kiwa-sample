@@ -71,7 +71,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.sphereon.ui.card"
+    namespace = "com.sphereon.kiwa.sample.ui.card"
     compileSdk = 36
 
     packaging {

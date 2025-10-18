@@ -1,3 +1,5 @@
+@file:Suppress("StringLiteralDuplication") // Gradle KSP configuration requires repeated library references
+
 /*
  * © 2025 Sphereon International B.V.
  *
@@ -84,11 +86,10 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
         }
     }
-
 }
 
 android {
-    namespace = "com.sphereon.ui.card.impl"
+    namespace = "com.sphereon.kiwa.sample.ui.card.impl"
     compileSdk = 36
 
     packaging {
@@ -119,11 +120,6 @@ ksp {
 }
 
 dependencies {
-    /*addProvider("ksp", libs.kotlin.inject.compiler.ksp)
-    add("ksp", libs.amz.kotlin.inject.contribute.public)
-    add("ksp", libs.amz.kotlin.inject.contribute.code.generators)
-    add("ksp", libs.anvil.compiler.ksp)*/
-
     addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
     add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
     add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)

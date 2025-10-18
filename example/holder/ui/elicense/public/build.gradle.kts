@@ -165,11 +165,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.sphereon.ui.elicense.engagament"
+    namespace = "com.sphereon.kiwa.sample.ui.elicense.engagament"
     compileSdk = 36
 
     /*defaultConfig {
-        applicationId = "com.sphereon.mdoc.testapp"
+        applicationId = "com.sphereon.kiwa.sample.app"
         minSdk = 30
 //        targetSdk = 35
         versionCode = 1

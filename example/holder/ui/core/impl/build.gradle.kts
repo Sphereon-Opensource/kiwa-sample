@@ -76,11 +76,10 @@ kotlin {
             implementation(compose.desktop.currentOs)
         }
     }
-
 }
 
 android {
-    namespace = "com.sphereon.ui.core"
+    namespace = "com.sphereon.kiwa.sample.ui.core"
     compileSdk = 36
 
     packaging {
@@ -112,23 +111,28 @@ dependencies {
         add("ksp", libs.amz.kotlin.inject.contribute.code.generators)
         add("ksp", libs.anvil.compiler.ksp)
      */
-    addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspDesktop", libs.anvil.compiler.ksp)
+    val kspDesktopTarget = "kspDesktop"
+    val kspAndroidTarget = "kspAndroid"
+    val kspAndroidDebugTarget = "kspAndroidDebug"
+    val kspAndroidTestTarget = "kspAndroidTest"
 
-    addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroid", libs.anvil.compiler.ksp)
+    addProvider(kspDesktopTarget, libs.kotlin.inject.compiler.ksp)
+    add(kspDesktopTarget, libs.amz.kotlin.inject.contribute.public)
+    add(kspDesktopTarget, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspDesktopTarget, libs.anvil.compiler.ksp)
 
-    addProvider("kspAndroidDebug", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidDebug", libs.anvil.compiler.ksp)
+    addProvider(kspAndroidTarget, libs.kotlin.inject.compiler.ksp)
+    add(kspAndroidTarget, libs.amz.kotlin.inject.contribute.public)
+    add(kspAndroidTarget, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspAndroidTarget, libs.anvil.compiler.ksp)
 
-    addProvider("kspAndroidTest", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidTest", libs.anvil.compiler.ksp)
+    addProvider(kspAndroidDebugTarget, libs.kotlin.inject.compiler.ksp)
+    add(kspAndroidDebugTarget, libs.amz.kotlin.inject.contribute.public)
+    add(kspAndroidDebugTarget, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspAndroidDebugTarget, libs.anvil.compiler.ksp)
+
+    addProvider(kspAndroidTestTarget, libs.kotlin.inject.compiler.ksp)
+    add(kspAndroidTestTarget, libs.amz.kotlin.inject.contribute.public)
+    add(kspAndroidTestTarget, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspAndroidTestTarget, libs.anvil.compiler.ksp)
 }

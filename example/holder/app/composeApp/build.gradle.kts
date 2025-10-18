@@ -81,6 +81,7 @@ kotlin {
             implementation(sphereonlib.androidx.activity.compose)
             implementation(libs.kiwa.holder.sdk.impl)
             implementation(libs.sphereon.core.api.default)
+            implementation(libs.sphereon.core.logger.mobile)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -107,7 +108,6 @@ kotlin {
             implementation(libs.sphereon.crypto)
             implementation(libs.sphereon.crypto.kms)
             implementation(libs.sphereon.crypto.kms.software)
-            implementation(libs.sphereon.core.logger.mobile)
             implementation(libs.kiwa.holder.sdk.impl)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.presenter.molecule.impl)
@@ -136,15 +136,15 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
         }
     }
-
 }
+val applicationId = "com.sphereon.kiwa.sample.app"
 
 android {
-    namespace = "com.sphereon.mdoc.testapp"
+    namespace = applicationId
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sphereon.mdoc.testapp"
+        applicationId = applicationId
         minSdk = 30
 //        targetSdk = 35
         versionCode = 1
@@ -174,11 +174,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.sphereon.mdoc.testapp.MainKt"
+        mainClass = "com.sphereon.kiwa.sample.app.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.sphereon.mdoc.testapp"
+            packageName = "com.sphereon.kiwa.sample.app"
             packageVersion = "1.0.0"
         }
     }
@@ -189,19 +189,15 @@ ksp {
     arg("software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
 }
 
+fun DependencyHandlerScope.addKspDependencies(configName: String) {
+    addProvider(configName, libs.kotlin.inject.compiler.ksp)
+    add(configName, libs.amz.kotlin.inject.contribute.public)
+    add(configName, libs.amz.kotlin.inject.contribute.code.generators)
+    add(configName, libs.anvil.compiler.ksp)
+}
+
 dependencies {
-    addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroid", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroid", libs.anvil.compiler.ksp)
-
-    addProvider("kspAndroidDebug", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidDebug", libs.anvil.compiler.ksp)
-
-    addProvider("kspAndroidTest", libs.kotlin.inject.compiler.ksp)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.public)
-    add("kspAndroidTest", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspAndroidTest", libs.anvil.compiler.ksp)
+    addKspDependencies("kspAndroid")
+    addKspDependencies("kspAndroidDebug")
+    addKspDependencies("kspAndroidTest")
 }

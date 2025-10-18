@@ -75,7 +75,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.sphereon.ui.auth"
+    namespace = "com.sphereon.kiwa.sample.ui.auth"
     compileSdk = 36
 
     packaging {
