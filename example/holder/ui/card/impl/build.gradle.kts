@@ -41,10 +41,10 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+//    jvm("desktop")
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
@@ -68,11 +68,12 @@ kotlin {
             implementation(libs.amz.kotlin.inject.contribute.public)
             implementation(libs.sphereon.core.api.public)
             implementation(libs.sphereon.core.api.default)
-            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
+            implementation(libs.sphereon.crypto.kms.software)
+            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCoreImpl)
-            api(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
-            api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
+            implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
+            implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
             implementation(libs.sphereon.cbor)
             implementation(libs.sphereon.mdoc.core)
             // Removed implementation(libs.kiwa.holder.sdk.impl)
@@ -81,16 +82,20 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
             implementation(libs.amz.kotlin.inject.impl)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-        }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
+//        }
     }
 }
 
 android {
     namespace = "com.sphereon.kiwa.sample.ui.card.impl"
     compileSdk = 36
+
+    defaultConfig {
+        minSdk = 30
+    }
 
     packaging {
         resources {
@@ -120,10 +125,10 @@ ksp {
 }
 
 dependencies {
-    addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
-    add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
-    add("kspDesktop", libs.anvil.compiler.ksp)
+//    addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
+//    add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
+//    add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
+//    add("kspDesktop", libs.anvil.compiler.ksp)
 
     addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
     add("kspAndroid", libs.amz.kotlin.inject.contribute.public)

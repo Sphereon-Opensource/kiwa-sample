@@ -38,10 +38,10 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+//    jvm("desktop")
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -60,7 +60,7 @@ kotlin {
             implementation(libs.amz.app.platform.presenter.molecule.impl)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
-            api(libs.sphereon.core.api.public)
+            implementation(libs.sphereon.core.api.public)
             implementation(libs.sphereon.core.logger.mobile)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
@@ -71,9 +71,9 @@ kotlin {
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-        }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//        }
     }
     /* ksp {
          // We are using the Amazon App Platform binding processor instead!
@@ -114,6 +114,10 @@ kotlin {
 android {
     namespace = "com.sphereon.kiwa.sample.ui.core"
     compileSdk = 36
+
+    defaultConfig {
+        minSdk = 30
+    }
 
     packaging {
         resources {

@@ -39,10 +39,10 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+//    jvm("desktop")
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
@@ -64,11 +64,11 @@ kotlin {
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
-//            implementation(libs.sphereon.core.api.default)
-            api(libs.bundles.kotlin.inject)
-            api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
-            api(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
-            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
+            implementation(libs.sphereon.core.api.public)
+            implementation(libs.bundles.kotlin.inject)
+            implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
+            implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
+            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation("com.russhwolf:multiplatform-settings:1.3.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
             implementation("com.russhwolf:multiplatform-settings-coroutines:1.3.0")
@@ -78,16 +78,20 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
             implementation(libs.amz.kotlin.inject.impl)
         }
-        desktopMain.dependencies {
+       /* desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-        }
+        }*/
     }
 }
 
 android {
     namespace = "com.sphereon.kiwa.sample.ui.auth.impl"
     compileSdk = 36
+
+    defaultConfig {
+        minSdk = 30
+    }
 
     packaging {
         resources {
@@ -126,7 +130,7 @@ fun DependencyHandlerScope.addKspDependencies(configName: String) {
 }
 
 dependencies {
-    val kspConfigurations = listOf("Desktop", "Android", "AndroidDebug", "AndroidTest")
+    val kspConfigurations = listOf(/*"Desktop",*/ "Android", "AndroidDebug", "AndroidTest")
     kspConfigurations.forEach { configName ->
         addKspDependencies(configName)
     }

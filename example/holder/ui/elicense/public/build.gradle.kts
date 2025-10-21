@@ -68,7 +68,7 @@ kotlin {
             }
         }*/
 
-    jvm("desktop")
+//    jvm("desktop")
 
     /*  @OptIn(ExperimentalWasmDsl::class)
       wasmJs {
@@ -91,7 +91,7 @@ kotlin {
       }*/
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -103,31 +103,32 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            api(libs.sphereon.core.api.public)
+            implementation(libs.sphereon.core.api.public)
             // disabled: implementation(libs.sphereon.di.scope.libDiScopePublic)
             // disabled: implementation(libs.amz.kotlin.inject.contribute.public)
-            api(libs.sphereon.cbor)
+           /* api(libs.sphereon.cbor)
             api(libs.sphereon.crypto)
             api(libs.sphereon.crypto.kms)
             api(libs.sphereon.data.link.ble.public)
             api(libs.sphereon.data.link.nfc.public)
             api(libs.sphereon.mdoc.core)
-            api(libs.sphereon.mdoc.datatransfer)
+            api(libs.sphereon.mdoc.datatransfer)*/
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             // default deps are already injected by conventions plugin!
             implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
 //            implementation(sphereonlib.dev.whyoleg.cryptography.core)
             implementation(libs.amz.app.platform.presenter.molecule.public)
-            api(libs.kiwa.holder.sdk.public)
-            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
-            api(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
+            implementation(libs.kiwa.holder.sdk.public)
+            implementation(libs.sphereon.mdoc.datatransfer)
+            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
+            implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
         }
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-        }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//        }
     }
     /*ksp {
         // We are using the Amazon App Platform binding processor instead!
@@ -168,13 +169,9 @@ android {
     namespace = "com.sphereon.kiwa.sample.ui.elicense.engagament"
     compileSdk = 36
 
-    /*defaultConfig {
-        applicationId = "com.sphereon.kiwa.sample.app"
+    defaultConfig {
         minSdk = 30
-//        targetSdk = 35
-        versionCode = 1
-        versionName = "0.0.1"
-    }*/
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

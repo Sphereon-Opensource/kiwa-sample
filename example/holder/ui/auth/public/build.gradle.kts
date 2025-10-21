@@ -37,10 +37,10 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+//    jvm("desktop")
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -52,14 +52,14 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            api(libs.sphereon.core.api.public)
-            api(libs.sphereon.cbor)
-            api(libs.sphereon.crypto)
-            api(libs.sphereon.crypto.kms)
-            api(libs.sphereon.data.link.ble.public)
-            api(libs.sphereon.data.link.nfc.public)
-            api(libs.sphereon.mdoc.core)
-            api(libs.sphereon.mdoc.datatransfer)
+            implementation(libs.sphereon.core.api.public)
+            implementation(libs.sphereon.cbor)
+            implementation(libs.sphereon.crypto)
+            implementation(libs.sphereon.crypto.kms)
+            implementation(libs.sphereon.data.link.ble.public)
+            implementation(libs.sphereon.data.link.nfc.public)
+            implementation(libs.sphereon.mdoc.core)
+            implementation(libs.sphereon.mdoc.datatransfer)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
             implementation(sphereonlib.dev.whyoleg.cryptography.core)
@@ -68,15 +68,20 @@ kotlin {
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-        }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//        }
     }
 }
 
 android {
     namespace = "com.sphereon.kiwa.sample.ui.auth"
     compileSdk = 36
+
+    defaultConfig {
+        minSdk = 30
+        multiDexEnabled = true
+    }
 
     packaging {
         resources {

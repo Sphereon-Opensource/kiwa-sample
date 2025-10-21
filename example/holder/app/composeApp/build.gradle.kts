@@ -15,7 +15,6 @@
  *
  */
 
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -27,8 +26,8 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
     alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
-    alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
-    id("maven-publish")
+//    alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
+//    id("maven-publish")
     alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
 }
 
@@ -51,7 +50,7 @@ kotlin {
             }
         }*/
 
-    jvm("desktop")
+//    jvm()
 
     /*  @OptIn(ExperimentalWasmDsl::class)
       wasmJs {
@@ -74,13 +73,13 @@ kotlin {
       }*/
 
     sourceSets {
-        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(sphereonlib.androidx.activity.compose)
             implementation(libs.kiwa.holder.sdk.impl)
-            implementation(libs.sphereon.core.api.default)
+//            implementation(libs.sphereon.core.api.default)
+//            implementation(libs.sphereon.mdoc.datatransfer)
             implementation(libs.sphereon.core.logger.mobile)
         }
         commonMain.dependencies {
@@ -97,18 +96,19 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.viewmodel)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.runtime.compose)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
-            implementation(libs.sphereon.core.api.public)
+//            implementation(libs.sphereon.core.api.public)
+            implementation(libs.amz.kotlin.inject.impl)
             implementation(libs.amz.kotlin.inject.impl)
             implementation(libs.amz.kotlin.inject.contribute.public)
-            implementation(libs.sphereon.data.link.ble.public)
+           /* implementation(libs.sphereon.data.link.ble.public)
             implementation(libs.sphereon.data.link.nfc.public)
             implementation(libs.sphereon.data.link.nfc.impl)
             implementation(libs.sphereon.mdoc.core)
             implementation(libs.sphereon.mdoc.datatransfer)
             implementation(libs.sphereon.crypto)
             implementation(libs.sphereon.crypto.kms)
-            implementation(libs.sphereon.crypto.kms.software)
-            implementation(libs.kiwa.holder.sdk.impl)
+            implementation(libs.sphereon.crypto.kms.software)*/
+            implementation(libs.kiwa.holder.sdk.public)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.presenter.molecule.impl)
             implementation(libs.amz.app.platform.renderer.compose.public)
@@ -131,10 +131,7 @@ kotlin {
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-        }
+
     }
 }
 val applicationId = "com.sphereon.kiwa.sample.app"
@@ -172,7 +169,7 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
-compose.desktop {
+/*compose.desktop {
     application {
         mainClass = "com.sphereon.kiwa.sample.app.MainKt"
 
@@ -182,7 +179,7 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
-}
+}*/
 
 ksp {
     // We are using the Amazon App Platform binding processor instead!

@@ -50,7 +50,7 @@ kotlin {
             }
         }*/
 
-    jvm("desktop")
+//    jvm("desktop")
 
     /*  @OptIn(ExperimentalWasmDsl::class)
       wasmJs {
@@ -73,7 +73,7 @@ kotlin {
       }*/
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
@@ -89,13 +89,13 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.viewmodel)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.runtime.compose)
-            implementation(libs.sphereon.core.api.public)
+            /*implementation(libs.sphereon.core.api.public)
             implementation(libs.sphereon.core.api.default)
             implementation(libs.sphereon.crypto.kms)
-            implementation(libs.sphereon.compat)
+            implementation(libs.sphereon.compat)*/
             implementation(libs.bundles.kotlin.inject)
-            api(libs.kiwa.holder.sdk.impl)
-            api(libs.kiwa.holder.sdk.public)
+//            api(libs.kiwa.holder.sdk.impl)
+            implementation(libs.kiwa.holder.sdk.public)
             /*  implementation(libs.kiwa.holder.sdk.public)
               implementation(libs.sphereon.cbor)
               implementation(libs.sphereon.crypto)
@@ -114,13 +114,14 @@ kotlin {
             implementation(libs.amz.kotlin.inject.contribute.public)
             implementation(libs.kottage)
             implementation(libs.qrcode.kotlin)
-            api(libs.sphereon.crypto.kms.software)
-            api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
-            api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
-            api(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
-            api(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
-            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
-            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardImpl)
+            implementation(libs.sphereon.mdoc.datatransfer)
+            implementation(libs.sphereon.crypto.kms.software)
+            implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
+            implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
+            implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
+            implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
+            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
+            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardImpl)
             /*implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)*/
             implementation(compose.materialIconsExtended)
         }
@@ -128,10 +129,10 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
             implementation(libs.amz.kotlin.inject.impl)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-        }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
+//        }
     }
 }
 
@@ -139,13 +140,9 @@ android {
     namespace = "com.sphereon.kiwa.sample.ui.elicense.engagement.impl"
     compileSdk = 36
 
-    /*defaultConfig {
-        applicationId = "com.sphereon.kiwa.sample.app"
+    defaultConfig {
         minSdk = 30
-//        targetSdk = 35
-        versionCode = 1
-        versionName = "0.0.1"
-    }*/
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -188,15 +185,15 @@ ksp {
 }
 
 dependencies {
-    val kspDesktopConfig = "kspDesktop"
+//    val kspDesktopConfig = "kspDesktop"
     val kspAndroidConfig = "kspAndroid"
     val kspAndroidDebugConfig = "kspAndroidDebug"
     val kspAndroidTestConfig = "kspAndroidTest"
 
-    addProvider(kspDesktopConfig, libs.kotlin.inject.compiler.ksp)
-    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.public)
-    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.code.generators)
-    add(kspDesktopConfig, libs.anvil.compiler.ksp)
+//    addProvider(kspDesktopConfig, libs.kotlin.inject.compiler.ksp)
+//    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.public)
+//    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.code.generators)
+//    add(kspDesktopConfig, libs.anvil.compiler.ksp)
 
     addProvider(kspAndroidConfig, libs.kotlin.inject.compiler.ksp)
     add(kspAndroidConfig, libs.amz.kotlin.inject.contribute.public)

@@ -38,10 +38,10 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+//    jvm("desktop")
 
     sourceSets {
-        val desktopMain by getting
+//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -53,26 +53,30 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            api(libs.sphereon.core.api.public)
-            api(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
-            api(libs.sphereon.crypto)
-            api(libs.sphereon.cbor)
-            api(libs.sphereon.mdoc.core)
-            api(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
-            api(libs.amz.app.platform.presenter.molecule.public)
+            implementation(libs.sphereon.core.api.public)
+            implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
+            implementation(libs.sphereon.crypto)
+            implementation(libs.sphereon.cbor)
+            implementation(libs.sphereon.mdoc.core)
+            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
+            implementation(libs.amz.app.platform.presenter.molecule.public)
         }
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-        }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//        }
     }
 }
 
 android {
     namespace = "com.sphereon.kiwa.sample.ui.card"
     compileSdk = 36
+
+    defaultConfig {
+        minSdk = 30
+    }
 
     packaging {
         resources {
