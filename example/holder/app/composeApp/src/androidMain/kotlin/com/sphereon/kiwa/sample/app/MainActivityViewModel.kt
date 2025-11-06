@@ -56,12 +56,17 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
-     * Flow providing access to the current session component.
-     *
-     * This flow is obtained from MainActivity's static reference and provides
-     * access to session-scoped dependencies including the template provider factory.
+     * Application services providing access to session component flow.
      */
-    private val componentFlow = MainActivity.sessionComponentFlow
+    private val appServices: AppServices = (application as KiwaSampleApplication).appComponent.appServices
+
+    /**
+     * Flow providing access to the current session instance.
+     *
+     * This flow provides access to session-scoped dependencies including the template provider factory.
+     * Instance is always non-null (anonymous instance if not authenticated).
+     */
+    private val sessionInstanceFlow = appServices.authSessionService.sessionInstanceFlow
 
     /**
      * Currently active template provider.
@@ -78,31 +83,38 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
      *
      * The templates are reactive and will automatically update when the underlying
      * application state changes, including when sessions change during authentication.
+     *
+     * Note: A session (anonymous or authenticated) is always initialized before this flow is accessed,
+     * so sessionInstance should never be null.
      */
     val templates: StateFlow<BaseModel> by lazy {
         println("MainActivityViewModel: Initializing templates StateFlow")
+
+        // Get the initial session instance and create initial template provider
+        val initialSession = sessionInstanceFlow.value
+        val initialProvider = (initialSession.component as TemplateProviderComponent).templateProviderFactory.createTemplateProvider()
+        currentTemplateProvider = initialProvider
+
         // Create a reactive flow that recreates the template provider when session changes
-        componentFlow.map { sessionComponent ->
-            println("MainActivityViewModel: Session component changed: $sessionComponent")
+        sessionInstanceFlow
+            .map { sessionInstance ->
+                println("MainActivityViewModel: Session instance changed: $sessionInstance")
 
-            // Clean up the previous template provider
-            currentTemplateProvider?.cancel()
+                // Clean up the previous template provider
+                currentTemplateProvider?.cancel()
 
-            // Create new template provider from the current session component
-            if (sessionComponent != null) {
+                // Create new template provider from the current session component
                 println("MainActivityViewModel: Creating new template provider from session component")
-                val newProvider = (sessionComponent as TemplateProviderComponent).templateProviderFactory.createTemplateProvider()
+                val newProvider = (sessionInstance.component as TemplateProviderComponent).templateProviderFactory.createTemplateProvider()
                 currentTemplateProvider = newProvider
                 newProvider.templates
-            } else {
-                println("MainActivityViewModel: No session component available")
-                MutableStateFlow(EmptyModel)
             }
-        }.flatMapLatest { it }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = EmptyModel
-        )
+            .flatMapLatest { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = initialProvider.templates.value
+            )
     }
 
     /**
@@ -136,9 +148,4 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
          */
         val templateProviderFactory: TemplateProvider.Factory
     }
-
-    /**
-     * Empty model implementation for when no session component is available.
-     */
-    private object EmptyModel : BaseModel
 }

@@ -49,6 +49,10 @@ data class SimpleDocumentEntry(
             .put(CERT_ALIAS, certAlias?.toCborString(), true).end()
     }
 
+    override fun toString(): String {
+        return "SimpleDocumentEntry(id='$id', document=$document, providerId='$providerId', keyAlias='$keyAlias', certAlias=$certAlias, validityInfo=$validityInfo)"
+    }
+
     companion object : HasFromCborWithOriginal<CborMap<StringLabel, CborItem<*>>, SimpleDocumentEntry> {
         val ID = StringLabel("id")
         val MDOC = StringLabel("mdoc")
@@ -68,4 +72,7 @@ data class SimpleDocumentEntry(
             certAlias = CERT_ALIAS.optional<CborString>(structure)?.value
         )
     }
+
+
+
 }

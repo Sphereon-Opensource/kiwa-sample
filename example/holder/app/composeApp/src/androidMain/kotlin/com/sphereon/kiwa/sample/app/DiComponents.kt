@@ -24,6 +24,7 @@ import com.sphereon.di.app.AppComponent
 import com.sphereon.di.context.UserScope
 import com.sphereon.di.session.SessionScope
 import me.tatarka.inject.annotations.Component
+import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
@@ -75,6 +76,25 @@ abstract class AndroidAppComponent(
      * @return The Android [Context] associated with this application component
      */
     override fun getContext(): Context = application as Context
+
+    /**
+     * Provides the [KiwaSampleApplication] instance for dependency injection.
+     *
+     * This allows other components to inject the application instance directly,
+     * enabling access to application-level services.
+     *
+     * @return The [KiwaSampleApplication] instance
+     * @throws IllegalStateException if the application is not an instance of [KiwaSampleApplication]
+     */
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideKiwaSampleApplication(): KiwaSampleApplication {
+        require(application is KiwaSampleApplication) {
+            "Application must be an instance of ${KiwaSampleApplication::class.java.simpleName}, " +
+                    "but was ${application::class.java.simpleName}"
+        }
+        return application as KiwaSampleApplication
+    }
 }
 
 /**
@@ -91,12 +111,6 @@ interface IAndroidAppComponent : AppComponent {
      * @return The Android [Context] for this application
      */
     fun getContext(): Context
-
-    /**
-     * Provides access to the NFC authentication bridge for routing NFC events
-     * between anonymous and authenticated contexts.
-     */
-    val nfcAuthenticationBridge: NfcAuthenticationBridge
 }
 
 /**

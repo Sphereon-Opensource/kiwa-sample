@@ -30,6 +30,7 @@ import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRe
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter.Input
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter.Model
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleMdocStore
+import com.sphereon.mdoc.data.device.DeviceRequest
 import com.sphereon.mdoc.data.device.DocRequest
 import com.sphereon.mdoc.data.device.DocumentWithKeyAlias
 import com.sphereon.mdoc.transfer.MapDrivenDocRequestSelector
@@ -57,13 +58,14 @@ class MdocInformationRequestPresenterImpl(
         val deviceRequest = input.deviceRequest
 
         // State for our sections, loaded asynchronously
-        var docRequestSectionStates by remember(
-            deviceRequest
-        ) { mutableStateOf<List<DocRequestSectionState>>(emptyList()) }
+        var docRequestSectionStates by remember(deviceRequest) {
+            mutableStateOf<List<DocRequestSectionState>>(emptyList())
+        }
 
         // Load documents and initialize section states
         LaunchedEffect(deviceRequest) {
-            docRequestSectionStates = loadDocRequestSections(deviceRequest)
+            val sections = loadDocRequestSections(deviceRequest)
+            docRequestSectionStates = sections
         }
 
         val docRequestDocRequestSections: List<DocRequestSection> = buildDocRequestSections(docRequestSectionStates)
@@ -81,7 +83,7 @@ class MdocInformationRequestPresenterImpl(
         )
     }
 
-    private suspend fun loadDocRequestSections(deviceRequest: com.sphereon.mdoc.data.device.DeviceRequest): List<DocRequestSectionState> {
+    private suspend fun loadDocRequestSections(deviceRequest: DeviceRequest): List<DocRequestSectionState> {
         val allEntries = storage.getDocuments()
         return deviceRequest.docRequests.orEmpty().map { req ->
             val matching = allEntries.filter {

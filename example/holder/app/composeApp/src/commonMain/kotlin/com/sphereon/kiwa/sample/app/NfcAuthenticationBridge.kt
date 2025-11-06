@@ -37,18 +37,6 @@ import com.sphereon.mdoc.transfer.TransferManager
 interface NfcAuthenticationBridge {
 
     /**
-     * Handles NFC engagement completion from anonymous context and routes to authenticated context.
-     *
-     * @param engagement The engagement instance from the NFC service
-     * @param transferManager The transfer manager from the NFC service
-     * @return true if successfully routed to authenticated context, false if user not authenticated
-     */
-    fun routeNfcEngagementToAuthenticatedContext(
-        engagement: EngagementInstance,
-        transferManager: TransferManager
-    ): Boolean
-
-    /**
      * Checks if NFC operations should be allowed based on authentication status.
      *
      * @return true if user is authenticated and NFC operations are allowed

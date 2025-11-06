@@ -28,7 +28,7 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
-    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
+//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
@@ -37,7 +37,7 @@ kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -110,8 +110,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 

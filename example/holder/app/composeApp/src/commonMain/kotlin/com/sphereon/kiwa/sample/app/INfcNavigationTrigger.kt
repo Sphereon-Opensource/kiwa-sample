@@ -37,7 +37,7 @@ interface INfcNavigationTrigger {
      * Triggers navigation to NFC engagement with the given parameters.
      * Returns true if navigation was triggered, false if no backstack is available.
      */
-    fun navigateToNfcEngagement(engagement: EngagementInstance, transferManager: TransferManager): Boolean
+    fun navigateToNfcEngagement(): Boolean
 
     /**
      * Observable flow that indicates when NFC navigation was triggered.

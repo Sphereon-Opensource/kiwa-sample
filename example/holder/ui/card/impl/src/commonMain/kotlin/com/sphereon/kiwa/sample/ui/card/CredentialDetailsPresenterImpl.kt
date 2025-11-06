@@ -65,10 +65,7 @@ class CredentialDetailsPresenterImpl(
 
                 is CredentialDetailsPresenter.Event.AttendedPresentation -> {
                     backstack.push(
-                        MdocEngagementScreenPresenter(
-                            MdocEngagementPresenter.Input(),
-                            mdocEngagementQrPresenter
-                        )
+                        MdocEngagementScreenPresenter(mdocEngagementQrPresenter)
                     )
                 }
             }
@@ -107,17 +104,13 @@ class CredentialDetailsPresenterImpl(
         )
     }
 
-    /**
-     * Wrapper presenter to handle backstack navigation with input parameters for mdoc engagement.
-     */
     private class MdocEngagementScreenPresenter(
-        private val input: MdocEngagementPresenter.Input,
         private val delegate: MdocEngagementPresenter
     ) : MoleculePresenter<Any, MdocEngagementPresenter.Model> {
 
         @Composable
         override fun present(input: Any): MdocEngagementPresenter.Model {
-            return delegate.present(this.input)
+            return delegate.present(MdocEngagementPresenter.Input)
         }
     }
 }

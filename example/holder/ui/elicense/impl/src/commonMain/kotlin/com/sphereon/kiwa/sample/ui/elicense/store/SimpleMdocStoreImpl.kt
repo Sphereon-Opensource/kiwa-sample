@@ -17,6 +17,7 @@
 
 package com.sphereon.kiwa.sample.ui.elicense.store
 
+import com.sphereon.core.api.context.CommandExecution
 import com.sphereon.core.compat.encodeToHex
 import com.sphereon.crypto.core.ManagedKeyInfo
 import com.sphereon.crypto.core.ManagedKeyInfoType
@@ -53,7 +54,9 @@ import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 @Inject
 @SingleIn(SessionScope::class)
 @ContributesBinding(SessionScope::class, boundType = SimpleMdocStore::class)
-class SimpleMdocStoreImpl(val app: App) : SimpleMdocStore {
+class SimpleMdocStoreImpl(val app: App, execution: CommandExecution) : SimpleMdocStore {
+
+    val log = execution.log.logManager.withTagSync("SimpleMdocStore")
 
     /**
      * A [CoroutineScope] used for managing coroutines within this class. This scope is tied to the
@@ -156,9 +159,11 @@ class SimpleMdocStoreImpl(val app: App) : SimpleMdocStore {
             keyAlias = keyInfo.alias,
             certAlias = keyInfo.key.getX509Certificate()?.let { keyInfo.alias },
         )
+        log.info("Storing document with id ${documentEntry.id}: $documentEntry")
         list.add(documentEntry.id, documentEntry.encodeCbor())
         // Emit refresh
         documentsState.value = getDocuments()
+        log.info("Document ${documentEntry.id} stored successfully")
     }
 
     /**
@@ -220,6 +225,7 @@ class SimpleMdocStoreImpl(val app: App) : SimpleMdocStore {
      * @param id The unique identifier of the document to be removed.
      */
     override suspend fun removeDocumentById(id: String) = storage.remove(id).also {
+        log.info("Removed document with id $id")
         // Emit refresh
         documentsState.value = getDocuments()
     }
@@ -242,14 +248,9 @@ class SimpleMdocStoreImpl(val app: App) : SimpleMdocStore {
      * to reflect the empty state. Useful for account deletion scenarios.
      */
     override suspend fun clearAll() {
-        // Get all documents and remove them individually
-//        val allDocuments = getDocuments()
-        println("KottageStorage: Clearing all documents")
+        log.info("Removing all documents")
         storage.removeAll()
-        /*for (document in allDocuments) {
-            println("Removing document: ${document.id}")
-            storage.remove(document.id)
-        }
+
         // Emit refresh to empty state*/
         documentsState.value = emptyList()
     }

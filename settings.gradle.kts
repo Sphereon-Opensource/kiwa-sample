@@ -21,6 +21,13 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+        // Do not remove the content part when maven local is at the top!
+        // https://slack-chats.kotlinlang.org/t/27045384/hi-there-i-have-a-very-annoying-internal-compiler-error-here
+        mavenLocal {
+            content {
+                includeGroupAndSubgroups("com.sphereon")
+            }
+        }
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -43,7 +50,7 @@ pluginManagement {
         }
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        mavenLocal()
+
     }
 }
 
@@ -52,15 +59,21 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("sphereonplug") {
-            from("com.sphereon.gradle:gradle-plugin-bom:0.0.7-SNAPSHOT@toml")
+            from("com.sphereon.gradle:gradle-plugin-bom:0.1.2@toml")
         }
         create("sphereonlib") {
-            from("com.sphereon.gradle:library-bom:0.0.7-SNAPSHOT@toml")
+            from("com.sphereon.gradle:library-bom:0.1.2@toml")
         }
 
     }
     repositories {
-        mavenLocal()
+        // Do not remove the content part when maven local is at the top!
+        // https://slack-chats.kotlinlang.org/t/27045384/hi-there-i-have-a-very-annoying-internal-compiler-error-here
+        mavenLocal {
+            content {
+                includeGroupAndSubgroups("com.sphereon")
+            }
+        }
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -83,6 +96,7 @@ dependencyResolutionManagement {
             url = uri("https://nexus.sphereon.com/repository/sphereon-opensource-releases")
         }
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+
     }
 
 }

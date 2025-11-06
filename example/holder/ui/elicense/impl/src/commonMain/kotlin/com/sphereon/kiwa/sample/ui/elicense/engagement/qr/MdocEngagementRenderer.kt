@@ -165,7 +165,7 @@ class MdocEngagementRenderer(
                     CircularProgressIndicator(color = Color(COLOR_PURPLE))
                     Spacer(Modifier.height(SPACING_SMALL.dp))
                     Text(
-                        text = "Connecting...",
+                        text = model.engagementEvent?.state?.name?.let { "Status: $it" } ?: "Connecting...",
                         color = fg,
                         textAlign = TextAlign.Center
                     )

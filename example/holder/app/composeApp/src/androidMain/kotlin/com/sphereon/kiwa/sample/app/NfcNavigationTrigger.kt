@@ -16,11 +16,13 @@
 
 package com.sphereon.kiwa.sample.app
 
+import androidx.compose.runtime.Composable
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.sample.ui.elicense.engagement.qr.MdocEngagementPresenter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.tatarka.inject.annotations.Inject
+import software.amazon.app.platform.presenter.molecule.MoleculePresenter
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 
 @Inject
@@ -30,7 +32,7 @@ class NfcNavigationTrigger(
     private val backstackRegistry: NfcBackstackRegistry
 ) : INfcNavigationTrigger {
 
-    private var backstackScope: com.sphereon.kiwa.sample.ui.core.backstack.PresenterBackstackScope? = null
+//    private var backstackScope: com.sphereon.kiwa.sample.ui.core.backstack.PresenterBackstackScope? = null
     private val _navigationTriggered = MutableStateFlow(0L)
     override val navigationTriggeredFlow: StateFlow<Long> = _navigationTriggered
 
@@ -39,7 +41,7 @@ class NfcNavigationTrigger(
         backstackRegistry.setBackstackScope(backstackScope)
     }
 
-    override fun navigateToNfcEngagement(engagement: com.sphereon.mdoc.engagement.EngagementInstance, transferManager: com.sphereon.mdoc.transfer.TransferManager): Boolean {
+    override fun navigateToNfcEngagement(): Boolean {
         println("NfcNavigationTrigger: navigateToNfcEngagement called on instance: $this")
         println("NfcNavigationTrigger: Instance hashCode: ${this.hashCode()}")
         val scope = backstackRegistry.getBackstackScope()
@@ -48,19 +50,11 @@ class NfcNavigationTrigger(
             return false
         }
 
-        println("NfcNavigationTrigger: Navigating to NFC engagement with engagement: ${engagement.id}")
+        println("NfcNavigationTrigger: Navigating to NFC engagement")
 
-        // Create the NFC engagement presenter directly, similar to how the share button works
-        val nfcPresenter = NfcEngagementScreenPresenter(
-            MdocEngagementPresenter.Input(
-                existingEngagement = engagement,
-                existingTransferManager = transferManager
-            ),
-            mdocEngagementPresenter
-        )
-
-        // Push to backstack
-        scope.push(nfcPresenter)
+        // Push the engagement presenter with a wrapper to convert Any input to MdocEngagementPresenter.Input
+        // The engagement manager already tracks the active engagement globally
+        scope.push(NfcEngagementScreenPresenter(mdocEngagementPresenter))
 
         // Notify that navigation was triggered
         _navigationTriggered.value = System.currentTimeMillis()
@@ -69,18 +63,13 @@ class NfcNavigationTrigger(
         return true
     }
 
-    /**
-     * Wrapper presenter that handles NFC engagement with specific parameters,
-     * similar to MdocEngagementScreenPresenter in CredentialListPresenter.
-     */
     private class NfcEngagementScreenPresenter(
-        private val input: MdocEngagementPresenter.Input,
         private val delegate: MdocEngagementPresenter
-    ) : software.amazon.app.platform.presenter.molecule.MoleculePresenter<Any, MdocEngagementPresenter.Model> {
+    ) : MoleculePresenter<Any, MdocEngagementPresenter.Model> {
 
-        @androidx.compose.runtime.Composable
+        @Composable
         override fun present(input: Any): MdocEngagementPresenter.Model {
-            return delegate.present(this.input)
+            return delegate.present(MdocEngagementPresenter.Input)
         }
     }
 }

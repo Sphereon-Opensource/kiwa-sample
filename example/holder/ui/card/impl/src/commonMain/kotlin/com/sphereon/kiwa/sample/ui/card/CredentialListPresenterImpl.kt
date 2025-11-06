@@ -34,12 +34,15 @@ import com.sphereon.kiwa.sample.ui.core.logs.LogViewerScreenPresenter
 import com.sphereon.kiwa.sample.ui.elicense.assignment.ElicenseAssignmentScreenPresenter
 import com.sphereon.kiwa.sample.ui.elicense.engagement.qr.MdocEngagementPresenter
 import com.sphereon.kiwa.sample.ui.elicense.issuance.TestPidIssuer
+import com.sphereon.kiwa.sample.ui.elicense.keystore.KeyCleanupService
 import com.sphereon.kiwa.sample.ui.elicense.settings.SubscriptionKeyPresenter
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleMdocStore
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleDocumentEntry
 import com.sphereon.mdoc.data.device.Document
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import software.amazon.app.platform.presenter.molecule.MoleculePresenter
@@ -59,6 +62,7 @@ class CredentialListPresenterImpl(
     val authSessionService: AuthSessionService,
     val subscriptionKeyPresenter: SubscriptionKeyPresenter,
     val logViewerScreenPresenter: LogViewerScreenPresenter,
+    val keyCleanupService: KeyCleanupService,
 ) : CredentialListPresenter {
     @Composable
     override fun present(input: Unit): CredentialListPresenter.Model {
@@ -71,6 +75,20 @@ class CredentialListPresenterImpl(
 
         LaunchedEffect(Unit) {
             storage.documentsFlow.collect { entries -> documentEntries = entries }
+        }
+
+        // Run key cleanup in background after login (when presenter is first created)
+        // Use GlobalScope to ensure cleanup continues even when navigating away from this screen
+        LaunchedEffect(Unit) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    println("Running background key cleanup after login")
+                    keyCleanupService.cleanupEphemeralKeys()
+                    println("Background key cleanup completed")
+                } catch (e: Exception) {
+                    println("Error during background key cleanup: ${e.message}")
+                }
+            }
         }
 
         val onStateEvent: (CredentialListPresenter.StateEvent) -> Unit = { event ->
@@ -98,10 +116,7 @@ class CredentialListPresenterImpl(
                 is CredentialListPresenter.StateEvent.CancelDelete -> pendingDelete = null
                 is CredentialListPresenter.StateEvent.AttendedPresentation -> {
                     backstack.push(
-                        MdocEngagementScreenPresenter(
-                            MdocEngagementPresenter.Input(),
-                            mdocEngagementQrPresenter
-                        )
+                        MdocEngagementScreenPresenter(mdocEngagementQrPresenter)
                     )
                 }
 
@@ -141,50 +156,28 @@ class CredentialListPresenterImpl(
                 // Clear all documents from storage
                 storage.clearAll()
 
-                // Clear all keys and certificates from the KMS software keystore
-                val provider = kms.getProviderById(kms.defaultProviderId()) as? SoftwareKmsProvider
-
-                if (provider != null) {
-                    val keyStore = provider.keyStore as SoftwareKeyStoreService
-
-                    // List all keys and delete them one by one
-                    val allKeys = keyStore.listKeys()
-                    println("CredentialListPresenter: Found ${allKeys.size} keys to delete")
-
-                    allKeys.forEach { keyInfo ->
-                        println("CredentialListPresenter: Deleting key with alias: ${keyInfo.alias}")
-                        keyStore.deleteKey(keyInfo)
-                    }
-
-                    // List all certificate aliases and delete them
-                    val allCertAliases = keyStore.listCertificateAliases()
-                    println("CredentialListPresenter: Found ${allCertAliases.size} certificates to delete")
-
-                    allCertAliases.forEach { certAlias ->
-                        println("CredentialListPresenter: Deleting certificate with alias: $certAlias")
-                        keyStore.deleteCertificate(certAlias)
-                    }
-
-                    println("CredentialListPresenter: Successfully cleared all keys and certificates from keystore")
-                } else {
-                    println("CredentialListPresenter: SoftwareKmsProvider not found in KMS")
-                }
+                // Use the KeyCleanupService to clean up ephemeral keys
+                // This will preserve system keys while removing document-related keys
+                println("CredentialListPresenter: Running key cleanup after clearing all licenses")
+                keyCleanupService.cleanupEphemeralKeys()
+                println("CredentialListPresenter: Successfully cleared all licenses and cleaned up keys")
             }
         } catch (e: SecurityException) {
             println("CredentialListPresenter: Security error clearing licenses and keys: ${e.message}")
         } catch (e: java.io.IOException) {
             println("CredentialListPresenter: IO error clearing licenses and keys: ${e.message}")
+        } catch (e: Exception) {
+            println("CredentialListPresenter: Error clearing licenses and keys: ${e.message}")
         }
     }
 
     private class MdocEngagementScreenPresenter(
-        private val input: MdocEngagementPresenter.Input,
         private val delegate: MdocEngagementPresenter
     ) : MoleculePresenter<Any, MdocEngagementPresenter.Model> {
 
         @Composable
         override fun present(input: Any): MdocEngagementPresenter.Model {
-            return delegate.present(this.input)
+            return delegate.present(MdocEngagementPresenter.Input)
         }
     }
 

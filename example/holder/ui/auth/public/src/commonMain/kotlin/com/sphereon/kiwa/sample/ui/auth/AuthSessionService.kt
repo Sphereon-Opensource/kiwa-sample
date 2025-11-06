@@ -20,13 +20,15 @@ package com.sphereon.kiwa.sample.ui.auth
 import com.sphereon.core.api.IdkResult
 import com.sphereon.core.api.error.IdkError
 import com.sphereon.di.context.UserContextComponent
+import com.sphereon.di.context.UserContextInstance
 import com.sphereon.di.session.SessionComponent
+import com.sphereon.di.session.SessionInstance
 import kotlinx.coroutines.flow.StateFlow
 
 interface AuthSessionService {
 
-    val sessionComponentFlow: StateFlow<SessionComponent?>
-    val contextComponentFlow: StateFlow<UserContextComponent?>
+    val sessionInstanceFlow: StateFlow<SessionInstance>
+    val contextInstanceFlow: StateFlow<UserContextInstance>
 
     val authenticatedFlow: StateFlow<Boolean>
     fun isAuthenticated(): Boolean

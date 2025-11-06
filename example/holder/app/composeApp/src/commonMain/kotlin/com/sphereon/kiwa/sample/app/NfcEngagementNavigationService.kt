@@ -28,9 +28,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 interface NfcEngagementNavigationService {
     fun startMonitoring()
     fun stopMonitoring()
-    fun handleNfcEngagementComplete(engagement: EngagementInstance, transferManager: TransferManager)
-    fun provideTransferManager(transferManager: TransferManager)
-    fun checkAndTriggerNavigation()
+//    fun handleNfcEngagementComplete()
 
     /**
      * Reactive flow of pending navigation data for NFC engagements.
@@ -38,13 +36,6 @@ interface NfcEngagementNavigationService {
      */
     val pendingNavigationFlow: StateFlow<PendingNavigation?>
 
-    /**
-     * Creates a presenter wrapper for NFC engagement with existing engagement and transfer manager.
-     */
-    fun createNfcEngagementPresenter(
-        engagement: EngagementInstance,
-        transferManager: TransferManager
-    ): MoleculePresenter<Any, MdocEngagementPresenter.Model>
 
     /**
      * Clears the pending navigation data.
@@ -75,7 +66,7 @@ interface NfcEngagementNavigationService {
      * This can be called from background NFC services to trigger UI navigation.
      * Returns true if navigation was successful, false otherwise.
      */
-    fun navigateToNfcEngagement(engagement: EngagementInstance, transferManager: TransferManager): Boolean
+    fun navigateToNfcEngagement(): Boolean
 
     @ContributesTo(SessionScope::class)
     interface Component {

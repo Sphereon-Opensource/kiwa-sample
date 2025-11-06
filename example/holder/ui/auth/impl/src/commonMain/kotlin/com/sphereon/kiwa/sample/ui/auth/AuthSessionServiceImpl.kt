@@ -25,12 +25,19 @@ import com.sphereon.core.api.error.IdkError
 import com.sphereon.core.defaults.context.DefaultPrincipalInputString
 import com.sphereon.core.defaults.context.DefaultTenantInputString
 import com.sphereon.di.context.UserContextComponent
+import com.sphereon.di.context.UserContextInstance
 import com.sphereon.di.context.UserContextManager
 import com.sphereon.di.session.SessionComponent
+import com.sphereon.di.session.SessionInstance
 import com.sphereon.kiwa.sample.ui.auth.settings.UserPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
@@ -38,7 +45,10 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
 /**
- * Very simple auth service which uses the user preferences to authenticate the user. Not ready for production use!
+ * Authentication service that uses UserContextManager and SessionContextManager.
+ *
+ * Since UserContextManager doesn't expose flows, this service maintains flows.
+ * Flows are always non-null because anonymous instances are returned when not authenticated.
  */
 @Inject
 @SingleIn(AppScope::class)
@@ -47,27 +57,42 @@ class AuthSessionServiceImpl(
     val userContextManager: UserContextManager,
     val userPreferences: UserPreferences
 ) : AuthSessionService {
-    private val _contextComponentFlow: MutableStateFlow<UserContextComponent?> = MutableStateFlow(null)
-    private val _sessionComponentFlow: MutableStateFlow<SessionComponent?> = MutableStateFlow(null)
-    private val _authenticatedFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _contextInstanceFlow: MutableStateFlow<UserContextInstance> = MutableStateFlow(
+        userContextManager.getAnonymous(makeActive = true)
+    )
+    private val _sessionInstanceFlow: MutableStateFlow<SessionInstance> = MutableStateFlow(
+        _contextInstanceFlow.value.component.sessionContextManager.getAnonymous(makeActive = true)
+    )
 
-    override val authenticatedFlow: StateFlow<Boolean> = _authenticatedFlow.asStateFlow()
-    override val contextComponentFlow: StateFlow<UserContextComponent?> = _contextComponentFlow.asStateFlow()
-    override val sessionComponentFlow: StateFlow<SessionComponent?> = _sessionComponentFlow.asStateFlow()
+    override val contextInstanceFlow: StateFlow<UserContextInstance> = _contextInstanceFlow.asStateFlow()
+    override val sessionInstanceFlow: StateFlow<SessionInstance> = _sessionInstanceFlow.asStateFlow()
+
+    override val authenticatedFlow: StateFlow<Boolean> = _sessionInstanceFlow.map { sessionInstance ->
+        sessionInstance.component.sessionContext.isAnonymous() == false
+    }.stateIn(
+        scope = CoroutineScope(Dispatchers.Default),
+        started = SharingStarted.Eagerly,
+        initialValue = _sessionInstanceFlow.value.component.sessionContext.isAnonymous() == false
+    )
 
     override fun authenticateAnonymous() {
+        _sessionInstanceFlow.value.sessionContextManager.destroyAll()
+        _contextInstanceFlow.value.userContextManager.destroyAll()
+
         println("authenticateAnonymous CALLED")
 
-        // Set the subscription key property during anonymous authentication too
         val subscriptionKey = userPreferences.kiwaSubscriptionKey
         DefaultTenantMapPropertySource.addProperty("kiwa.subscription.key", subscriptionKey)
 
-        val context = userContextManager.getOrCreateAnonymous(makeActive = true)
-        _contextComponentFlow.value = context.component
-        val session = context.component.sessionContextManager.getOrCreateAnonymous(makeActive = true)
-        _sessionComponentFlow.value = session.component
-        _authenticatedFlow.value = false
-        println("authenticateAnonymous DONE: $context, $session")
+        // Use manager with makeActive=true to set as active context
+        val context = userContextManager.getAnonymous(makeActive = true)
+        _contextInstanceFlow.value = context
+
+        // Use session manager with makeActive=true to set as active session
+        val session = context.component.sessionContextManager.getAnonymous(makeActive = true)
+        _sessionInstanceFlow.value = session
+
+        println("authenticateAnonymous DONE")
     }
 
     override fun authenticateWithUsernameAndPassword(
@@ -75,32 +100,36 @@ class AuthSessionServiceImpl(
         password: String?,
         remember: Boolean?
     ): IdkResult<Pair<UserContextComponent, SessionComponent>, IdkError> {
-        println("authenticateWithUsernameAndPassword CALLED: $username, $password, $remember")
-        logout() // Just make sure to clear any sessions
+        println("authenticateWithUsernameAndPassword CALLED: $username")
+        logout()
 
-        // Use stored username if none provided (for 6-digit password login)
         val actualUsername = username ?: userPreferences.username
 
-        // Validate username and password
         val validationError = validateCredentials(actualUsername, password, remember)
         if (validationError != null) {
             return validationError
         }
 
-        // Set the subscription key property during login
         val subscriptionKey = userPreferences.kiwaSubscriptionKey
         DefaultTenantMapPropertySource.addProperty("kiwa.subscription.key.acc", subscriptionKey)
 
-        val context = userContextManager.createOrGetFromInputs(
+        // Use manager with makeActive=true to set as active context
+        val contextInstance = userContextManager.createOrGetFromInputs(
             DefaultTenantInputString(actualUsername),
-            DefaultPrincipalInputString(actualUsername)
+            DefaultPrincipalInputString(actualUsername),
+            makeActive = true
         )
-        _contextComponentFlow.value = context
-        val session = context.sessionContextManager.createOrGetFromId(actualUsername)
-        _sessionComponentFlow.value = session
-        println("authenticateWithUsernameAndPassword LOGGED IN: $context, $session")
-        _authenticatedFlow.value = true
-        return (context to session).asOkResult()
+        _contextInstanceFlow.value = contextInstance
+
+        // Use session manager with makeActive=true to set as active session
+        val sessionInstance = contextInstance.component.sessionContextManager.createOrGetFromId(
+            actualUsername,
+            makeActive = true
+        )
+        _sessionInstanceFlow.value = sessionInstance
+
+        println("authenticateWithUsernameAndPassword DONE")
+        return (contextInstance.component to sessionInstance.component).asOkResult()
     }
 
     private fun validateCredentials(
@@ -125,10 +154,8 @@ class AuthSessionServiceImpl(
         actualUsername: String,
         remember: Boolean?
     ): IdkResult<Pair<UserContextComponent, SessionComponent>, IdkError>? {
-        val authError = IdkError.NOT_FOUND_ERROR(message = "password incorrect").asErrorResult()
-
         return if (remember != true || userPreferences.username != actualUsername.lowercase().trim()) {
-            authError
+            IdkError.NOT_FOUND_ERROR(message = "password incorrect").asErrorResult()
         } else {
             null
         }
@@ -138,8 +165,6 @@ class AuthSessionServiceImpl(
         actualUsername: String,
         password: String
     ): IdkResult<Pair<UserContextComponent, SessionComponent>, IdkError>? {
-        val authError = IdkError.NOT_FOUND_ERROR(message = "password incorrect").asErrorResult()
-
         return when {
             password.length != PASSWORD_LENGTH || !password.all { it.isDigit() } -> {
                 IdkError.NOT_FOUND_ERROR(
@@ -147,17 +172,20 @@ class AuthSessionServiceImpl(
                 ).asErrorResult()
             }
             !userPreferences.checkCredentials(actualUsername, password) -> {
-                authError
+                IdkError.NOT_FOUND_ERROR(message = "password incorrect").asErrorResult()
             }
             else -> null
         }
     }
 
     override fun logout() {
+        println("logout CALLED")
         userPreferences.setRememberMe(false)
-        _contextComponentFlow.value = null
-        _sessionComponentFlow.value = null
-        _authenticatedFlow.value = false
+
+        // Switch to anonymous - this will make anonymous active
+        authenticateAnonymous()
+
+        println("logout DONE")
     }
 
     override fun deleteAccount() {
@@ -166,23 +194,8 @@ class AuthSessionServiceImpl(
     }
 
     override fun isAuthenticated(): Boolean {
-        val sessionComponent = sessionComponentFlow.value
-        val contextComponent = contextComponentFlow.value
-        val isAnonymous = sessionComponent?.sessionContext?.isAnonymous()
-
-        println("isAuthenticated DEBUG:")
-        println("  sessionComponent != null: ${sessionComponent != null}")
-        println("  contextComponent != null: ${contextComponent != null}")
-        println("  isAnonymous: $isAnonymous")
-        println("  isAnonymous == false: ${isAnonymous == false}")
-
-        val result = sessionComponent != null &&
-                contextComponent != null &&
-                isAnonymous == false
-
-        println("  final result: $result")
-
-        return result
+        // Check if the active session is not anonymous
+        return _sessionInstanceFlow.value.component.sessionContext.isAnonymous() == false
     }
 
     @ContributesTo(AppScope::class)

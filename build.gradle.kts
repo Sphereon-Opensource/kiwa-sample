@@ -48,7 +48,7 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.jvm) apply false
     alias(sphereonplug.plugins.com.vanniktech.maven.publish) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.serialization) apply false
-    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin) apply false
+//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin) apply false
     alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlin.android) apply false
     alias(sphereonplug.plugins.dev.petuska.npm.publish.dev.petuska.npm.publish.gradle.plugin) apply false
@@ -117,7 +117,7 @@ subprojects {
         // Configure all Detekt tasks in this module
         tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
             // Match your toolchain/targets
-            jvmTarget = "21"
+            jvmTarget = "17"
 
             // KMP modules often place generated sources under various dirs—exclude them
             setSource(files(projectDir))
@@ -186,7 +186,13 @@ tasks.register("detektFixAll") {
 }
 
 repositories {
-    mavenLocal()
+    // Do not remove the content part when maven local is at the top!
+    // https://slack-chats.kotlinlang.org/t/27045384/hi-there-i-have-a-very-annoying-internal-compiler-error-here
+    mavenLocal {
+        content {
+            includeGroupAndSubgroups("com.sphereon")
+        }
+    }
     mavenCentral()
     google()
     gradlePluginPortal()

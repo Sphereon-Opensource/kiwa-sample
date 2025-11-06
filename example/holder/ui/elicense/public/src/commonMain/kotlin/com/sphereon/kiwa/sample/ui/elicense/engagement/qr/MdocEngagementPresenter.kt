@@ -23,9 +23,7 @@ import com.sphereon.kiwa.sample.ui.core.appbar.BottomAppBarConfig
 import com.sphereon.kiwa.sample.ui.core.appbar.IAppBarConfigModel
 import com.sphereon.kiwa.sample.ui.core.appbar.TopAppBarConfig
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter
-import com.sphereon.mdoc.engagement.EngagementEvent
-import com.sphereon.mdoc.engagement.EngagementInstance
-import com.sphereon.mdoc.transfer.TransferManager
+import com.sphereon.mdoc.engagement.MdocEngagementEvent
 import software.amazon.app.platform.presenter.BaseModel
 import software.amazon.app.platform.presenter.molecule.MoleculePresenter
 
@@ -44,19 +42,7 @@ import software.amazon.app.platform.presenter.molecule.MoleculePresenter
 interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.Input, MdocEngagementPresenter.Model> {
 
     @Immutable
-    data class Input(
-        /**
-         * Optional existing engagement instance. If provided, the presenter will use this
-         * engagement instead of creating a new one. This supports scenarios where NFC
-         * engagement has already been initiated.
-         */
-        val existingEngagement: EngagementInstance? = null,
-        /**
-         * Optional existing transfer manager. If provided along with existingEngagement,
-         * the presenter will use this transfer manager instead of calling start() on the engagement.
-         */
-        val existingTransferManager: TransferManager? = null
-    )
+    object Input
 
     sealed interface Model : BaseModel, IAppBarConfigModel {
         val onStateEvent: (event: UiStateEvent) -> Unit
@@ -75,7 +61,7 @@ interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.In
         @Immutable
         data class Engagement(
             val qrImage: ImageBitmap? = null, // If filled, a QR code would be shown
-            val engagementEvent: EngagementEvent? = null,
+            val engagementEvent: MdocEngagementEvent? = null,
             val showQr: Boolean = false,
 
             // Callback option from UI. Current presenter is just a test code presenter, combining buttons with QR display etc.
@@ -91,13 +77,13 @@ interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.In
 
         @Immutable
         data class Connecting(
-            val engagementEvent: EngagementEvent,
+            val engagementEvent: MdocEngagementEvent? = null,
             override val onStateEvent: (event: UiStateEvent) -> Unit
         ) : Model
 
         @Immutable
         data class Stopped(
-            val engagementEvent: EngagementEvent? = null,
+            val engagementEvent: MdocEngagementEvent? = null,
             override val onStateEvent: (event: UiStateEvent) -> Unit
         ) : Model
 
@@ -111,15 +97,15 @@ interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.In
     }
 
     sealed interface UiStateEvent {
-        data object Initial : UiStateEvent
+        /*data object Initial : UiStateEvent
         data object Engagement : UiStateEvent // Kickof a new engagement. So Initial -> Engagement
         data object Select : UiStateEvent // Navigate to the Information Request selection screen
 
         data object Connecting : UiStateEvent
-        data object Sharing : UiStateEvent // Processing and sending mdoc device response
+        data object Sharing : UiStateEvent // Processing and sending mdoc device response*/
         data object Stopped : UiStateEvent // Stop existing engagement, moving from Engagement -> Initial
         data object ShowQr : UiStateEvent // Switch UI from NFC icon to QR code
-        data object Success : UiStateEvent // Successful share - show toast and navigate back
+//        data object Success : UiStateEvent // Successful share - show toast and navigate back
         data object SuccessComplete : UiStateEvent // Success toast completed - navigate back to credential list
     }
 }

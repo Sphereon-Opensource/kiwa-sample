@@ -20,7 +20,15 @@ package com.sphereon.kiwa.sample.app
 import com.sphereon.data.link.nfc.NfcApduDispatcher
 import com.sphereon.data.link.nfc.SessionNfcApduDispatcher
 import com.sphereon.di.session.SessionComponent
+import com.sphereon.di.session.SessionInstance
 import com.sphereon.mdoc.engagement.nfc.AbstractMdocNfcService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 
 /**
@@ -42,94 +50,108 @@ import com.sphereon.mdoc.engagement.nfc.AbstractMdocNfcService
  * - Manage the NFC communication session lifecycle
  *
  * Note: This class is instantiated by the Android NFC framework via class reference,
- * so it cannot use dependency injection and must use the bridge pattern.
+ * so it cannot use dependency injection. It accesses services through the Application instance.
  */
 class MdocNfcService : AbstractMdocNfcService() {
 
-    /**
-     * NFC authentication bridge for routing events to authenticated context.
-     * This bridge checks authentication and routes events to the proper session.
-     */
-    private val nfcBridge by lazy { MainActivity.nfcAuthenticationBridge }
 
-    /**
-     * The active session component providing session-scoped dependencies.
-     *
-     * CRITICAL: This now uses the anonymous session as a fallback for basic NFC operations,
-     * but all engagement events are routed through the bridge to the authenticated context.
-     */
-    override val sessionComponent: SessionComponent by lazy {
-        try {
-            // Always use anonymous session for basic NFC operations
-            // Engagement events will be routed to authenticated context via bridge
-            println("MdocNfcService: Using anonymous session component for basic NFC operations")
-            MainActivity.sessionComponentFlow.value
-        } catch (e: Exception) {
-            throw IllegalStateException("Failed to access session component for NFC service: ${e.message}", e)
-        }
+    companion object {
+
+        lateinit var app: KiwaSampleApplication
+
+        /**
+         * Application services providing access to authentication bridge and session components.
+         */
+        private val appServices
+            get() = app.appComponent.appServices
+
+
+        /**
+         * Coroutine scope for observing activeUserContextInstance changes.
+         */
+        private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+
+        /**
+         * The active session instance providing session-scoped dependencies.
+         *
+         */
+        private val sessionInstance: SessionInstance
+            get() = try {
+                println("===============>> Auth session service requested")
+                appServices.userContextManager.activeInstance.value.sessionContextManager.getActive().also {
+                    println("Auth session service: ${it.sessionId}: ${it.sessionContext}")
+                }
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to access session instance for NFC service: ${e.message}", e)
+            }
+
     }
 
     /**
+     * The session component required by AbstractMdocNfcService.
+     * Lazily initialized and cached to ensure the same instance is used throughout.
+     */
+    override val sessionComponent: SessionComponent by lazy {
+        sessionInstance.component
+    }
+
+
+    /**
      * The NFC APDU dispatcher responsible for handling NFC communication protocols.
+     * Lazily initialized and cached to ensure the same dispatcher instance is used
+     * for both tryDispatch() and receive() calls in the async processing loop.
      *
-     * This dispatcher uses the anonymous session context for basic APDU processing,
-     * but engagement events are routed to authenticated context via the bridge.
+     * This dispatcher uses the authenticated user's session context for APDU processing.
      */
     override val apduService: NfcApduDispatcher by lazy {
         (sessionComponent as SessionNfcApduDispatcher.Component).sessionNfcApduDispatcher
     }
 
+
     /**
      * Navigation service from the anonymous session context.
      * This is wrapped with the bridge to route engagement events to authenticated context.
      */
-    private val baseNavigationService: NfcEngagementNavigationService by lazy {
-        val service = (sessionComponent as NfcEngagementNavigationService.Component).nfcEngagementNavigationService
-        println("MdocNfcService: Created base navigation service: $service")
-        println("MdocNfcService: Base navigation service class: ${service::class}")
-        service
-    }
+    private val navigationService: NfcEngagementNavigationService
+        get() {
+            val service = (sessionComponent as NfcEngagementNavigationService.Component).nfcEngagementNavigationService
+            println("MdocNfcService: Created navigation service: $service")
+            println("MdocNfcService: navigation service class: ${service::class}")
+            return service
+        }
 
+    /*   */
     /**
      * Bridged navigation service that routes engagement events to authenticated context.
-     */
+     *//*
     val navigationService: NfcEngagementNavigationService by lazy {
-        val bridgedService = BridgedNfcEngagementNavigationService(baseNavigationService, nfcBridge)
+        val bridgedService = BridgedNfcEngagementNavigationService(nfcEngagementNavigationService, nfcBridge)
         println("MdocNfcService: Created bridged navigation service: $bridgedService")
         println("MdocNfcService: Bridged navigation service class: ${bridgedService::class}")
+
         bridgedService
-    }
+    }*/
 
     /**
-     * Checks authentication status and initializes NFC monitoring.
+     * Background NFC engagement is managed by the engagementManager singleton.
+     * No need to track it locally since the manager enforces one engagement per type.
+     * Note: engagementManager is provided by AbstractMdocNfcService
      */
-    init {
-        println("MdocNfcService initialized with authentication bridge")
-
-        // Start monitoring with bridged navigation service
-        // The bridge will handle routing to authenticated context when needed
-        println("MdocNfcService: Starting NFC monitoring with bridged navigation service")
-        navigationService.startMonitoring()
-    }
 
     /**
-     * Override APDU processing to include authentication check via bridge.
+     * Override APDU processing to include authentication check and delegate to base class.
      * This ensures every NFC interaction is validated against authentication status.
      */
     override fun processCommandApdu(commandApdu: ByteArray?, extras: android.os.Bundle?): ByteArray? {
-        println("MdocNfcService: Processing APDU command via bridge")
-
-        // Check authentication via bridge before processing any APDU
-        if (!nfcBridge.isNfcAllowed()) {
+        // Check authentication before processing any APDU
+        if (appServices.userContextManager.isAnonymous()) {
             println("MdocNfcService: Rejecting APDU - user not authenticated")
             // Return error response for unauthenticated access
             return byteArrayOf(0x6F.toByte(), 0x00.toByte()) // General error
         }
 
-        println("MdocNfcService: User authenticated, proceeding with APDU processing")
-
-        // Proceed with normal APDU processing using anonymous session
-        // Engagement events will be intercepted and routed via bridge
+        // Proceed with normal APDU processing
         return try {
             super.processCommandApdu(commandApdu, extras)
         } catch (e: Exception) {
@@ -140,14 +162,64 @@ class MdocNfcService : AbstractMdocNfcService() {
     }
 
     /**
+     * Called when the service is first created by the Android framework.
+     * This is where we can safely access the application instance.
+     */
+    override fun onCreate() {
+        app = application as KiwaSampleApplication
+        super.onCreate()
+        println("MdocNfcService: Service onCreate() - application now available")
+
+        // Observe activeUserContextInstance changes and update monitoring accordingly
+        appServices.userContextManager.activeInstance
+            .onEach { userContext ->
+                println("MdocNfcService: activeUserContextInstance changed to: $userContext")
+                if (!userContext.isCurrentlyActive() || userContext.userContextManager.isAnonymous()) {
+                    log.warn("MdocNfcService: NFC not allowed (user not logged in) - stopping monitoring and closing NFC engagement")
+                    navigationService.stopMonitoring()
+                    closeNfcEngagement()
+                } else {
+                    log.info("==================================================")
+                    log.info("MdocNfcService: NFC allowed - starting monitoring")
+                    navigationService.startMonitoring()
+                }
+            }
+            .launchIn(serviceScope)
+    }
+
+    /**
+     * Closes any active NFC engagement.
+     * Called when user logs out to ensure clean state.
+     */
+    private fun closeNfcEngagement() {
+        serviceScope.launch {
+            runCatching {
+                log.info("MdocNfcService: Closing NFC engagement via engagement manager")
+                val result = engagementManager.closeNfcEngagement()
+                if (result.isOk) {
+                    log.info("MdocNfcService: NFC engagement closed successfully")
+                } else {
+                    log.debug("MdocNfcService: No NFC engagement to close: ${result.error}")
+                }
+            }.onFailure { error ->
+                log.error("MdocNfcService: Error closing NFC engagement: ${error.message}")
+            }
+        }
+    }
+
+
+
+    /**
      * Called when the NFC service is being destroyed.
      *
      * This method ensures proper cleanup of resources when the service lifecycle ends.
      */
     override fun onDestroy() {
-        println("MdocNfcService onDestroy - stopping navigation monitoring")
+        println("MdocNfcService onDestroy - stopping navigation monitoring and closing NFC engagement")
         try {
             navigationService.stopMonitoring()
+            closeNfcEngagement()
+            serviceScope.cancel()
         } catch (e: Exception) {
             println("MdocNfcService: Error during destruction: ${e.message}")
         }
