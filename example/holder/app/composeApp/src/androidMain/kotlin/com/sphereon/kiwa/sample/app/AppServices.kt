@@ -48,7 +48,7 @@
  */
 package com.sphereon.kiwa.sample.app
 
-import com.sphereon.core.api.SyncLogService
+import com.sphereon.core.api.LogService
 import com.sphereon.di.context.UserContextManager
 import com.sphereon.kiwa.sample.ui.auth.AuthSessionService
 import software.amazon.app.platform.renderer.ComposeAndroidRendererFactory
@@ -92,7 +92,7 @@ interface AppServices {
     /**
      * Application-wide logging service for operation tracking and debugging.
      */
-    val log: SyncLogService
+    val log: LogService
 
     val userContextManager: UserContextManager
 

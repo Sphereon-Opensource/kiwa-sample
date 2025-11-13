@@ -17,7 +17,7 @@
 
 package com.sphereon.kiwa.sample.ui.elicense.store
 
-import com.sphereon.core.api.context.CommandExecution
+import com.sphereon.core.api.context.SessionExecution
 import com.sphereon.core.compat.encodeToHex
 import com.sphereon.crypto.core.ManagedKeyInfo
 import com.sphereon.crypto.core.ManagedKeyInfoType
@@ -54,9 +54,9 @@ import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 @Inject
 @SingleIn(SessionScope::class)
 @ContributesBinding(SessionScope::class, boundType = SimpleMdocStore::class)
-class SimpleMdocStoreImpl(val app: App, execution: CommandExecution) : SimpleMdocStore {
+class SimpleMdocStoreImpl(val app: App, execution: SessionExecution) : SimpleMdocStore {
 
-    val log = execution.log.logManager.withTagSync("SimpleMdocStore")
+    val log = execution.log.logManager.withTag("SimpleMdocStore")
 
     /**
      * A [CoroutineScope] used for managing coroutines within this class. This scope is tied to the

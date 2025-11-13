@@ -351,6 +351,15 @@ class MdocEngagementRenderer(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(SPACING_STANDARD.dp))
+            Button(
+                onClick = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.Stopped) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = fg.copy(alpha = BUTTON_ALPHA_LOW),
+                    contentColor = fg
+                ),
+                modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT.dp)
+            ) { Text("Stop") }
         }
     }
 
@@ -397,7 +406,7 @@ class MdocEngagementRenderer(
                     "Show QR code"
                 }
                 val eventToSend = if (model.showQr) {
-                    MdocEngagementPresenter.UiStateEvent.SuccessComplete
+                    MdocEngagementPresenter.UiStateEvent.Stopped
                 } else {
                     MdocEngagementPresenter.UiStateEvent.ShowQr
                 }

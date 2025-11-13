@@ -34,7 +34,7 @@
 
 package com.sphereon.kiwa.sample.ui.elicense.keystore
 
-import com.sphereon.core.api.context.CommandExecution
+import com.sphereon.core.api.context.SessionExecution
 import com.sphereon.crypto.core.kms.KeyManagerService
 import com.sphereon.crypto.kms.keystore.software.SoftwareKeyStoreService
 import com.sphereon.crypto.kms.provider.software.SoftwareKmsProvider
@@ -65,10 +65,10 @@ import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 class KeyCleanupServiceImpl(
     private val mdocStore: SimpleMdocStore,
     private val kms: KeyManagerService,
-    execution: CommandExecution
+    execution: SessionExecution
 ) : KeyCleanupService {
 
-    private val log = execution.log.logManager.withTagSync("KeyCleanupService")
+    private val log = execution.log.logManager.withTag("KeyCleanupService")
     private val cleanupMutex = Mutex()
     private var isCleanupRunning = false
 
@@ -79,7 +79,8 @@ class KeyCleanupServiceImpl(
          */
         private val PRESERVED_KEY_ALIASES = setOf(
             KIWA_WALLET_CERT_ALIAS,  // kiwa-wallet-certificate
-            PID_ISSUER_KEY_ALIAS      // test-pid-issuer
+            PID_ISSUER_KEY_ALIAS,      // test-pid-issuer
+            "sectigo" // Root CA for Kiwa APIs (for older platforms)
         )
     }
 
@@ -174,10 +175,10 @@ class KeyCleanupServiceImpl(
             if (isCompositionCancellation) {
                 log.warn("Key cleanup cancelled due to composition scope being left - this is expected when navigating away")
             } else {
-                log.error("Key cleanup cancelled: ${e.message}", throwable = e)
+                log.error("Key cleanup cancelled: ${e.message}", exception = e)
             }
         } catch (e: Exception) {
-            log.error("Error during key cleanup: ${e.message}", throwable = e)
+            log.error("Error during key cleanup: ${e.message}", exception = e)
         } finally {
             cleanupMutex.withLock {
                 isCleanupRunning = false

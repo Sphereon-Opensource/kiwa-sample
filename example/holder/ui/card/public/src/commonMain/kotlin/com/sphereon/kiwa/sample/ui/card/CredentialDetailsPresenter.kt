@@ -42,14 +42,43 @@ interface CredentialDetailsPresenter : MoleculePresenter<CredentialDetailsPresen
         data object CancelDelete : Event
         data object ConfirmDelete : Event
         data object AttendedPresentation : Event
+        data class ViewImage(val imageData: ByteArray, val label: String) : Event
+        data object CloseImage : Event
     }
 
     @Immutable
     data class VerifiedInfoItem(
         val namespace: String,
         val label: String,
-        val value: String,
-    )
+        val value: String?,
+        val children: List<VerifiedInfoItem>? = null,
+        val imageData: ByteArray? = null,
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is VerifiedInfoItem) return false
+
+            if (namespace != other.namespace) return false
+            if (label != other.label) return false
+            if (value != other.value) return false
+            if (children != other.children) return false
+            if (imageData != null) {
+                if (other.imageData == null) return false
+                if (!imageData.contentEquals(other.imageData)) return false
+            } else if (other.imageData != null) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = namespace.hashCode()
+            result = 31 * result + label.hashCode()
+            result = 31 * result + (value?.hashCode() ?: 0)
+            result = 31 * result + (children?.hashCode() ?: 0)
+            result = 31 * result + (imageData?.contentHashCode() ?: 0)
+            return result
+        }
+    }
 
     sealed interface Model : BaseModel, IAppBarConfigModel {
         val onEvent: (Event) -> Unit
@@ -77,6 +106,7 @@ interface CredentialDetailsPresenter : MoleculePresenter<CredentialDetailsPresen
             val selectedTab: Tab,
             val verifiedItems: List<VerifiedInfoItem>,
             val showDeleteModal: Boolean,
+            val fullScreenImage: Pair<ByteArray, String>?,
             override val onEvent: (Event) -> Unit,
         ) : Model
     }

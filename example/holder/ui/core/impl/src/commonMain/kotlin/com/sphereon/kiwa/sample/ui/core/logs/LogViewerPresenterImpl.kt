@@ -34,9 +34,9 @@ import com.sphereon.core.log.mobile.MobileLogFilter
 import com.sphereon.di.session.SessionScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-import kotlin.time.Clock
 
 @Inject
 @ContributesBinding(SessionScope::class, boundType = LogViewerPresenter::class)
@@ -45,7 +45,7 @@ class LogViewerPresenterImpl(
     logManager: SessionLogManager
 ) : LogViewerPresenter {
 
-    private val log = logManager.withTagSync("LogViewerPresenter")
+    private val log = logManager.withTag("LogViewerPresenter")
 
     @Composable
     override fun present(input: Unit): LogViewerPresenter.Model {

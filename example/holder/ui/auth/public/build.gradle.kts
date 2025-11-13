@@ -24,7 +24,6 @@ plugins {
     alias(sphereonplug.plugins.com.android.library)
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
@@ -37,10 +36,7 @@ kotlin {
         }
     }
 
-//    jvm("desktop")
-
     sourceSets {
-//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -52,25 +48,12 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.sphereon.core.api.public)
-            implementation(libs.sphereon.cbor)
-            implementation(libs.sphereon.crypto)
-            implementation(libs.sphereon.crypto.kms)
-            implementation(libs.sphereon.data.link.ble.public)
-            implementation(libs.sphereon.data.link.nfc.public)
-            implementation(libs.sphereon.mdoc.core)
-            implementation(libs.sphereon.mdoc.datatransfer)
-            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
-            implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
-            implementation(sphereonlib.dev.whyoleg.cryptography.core)
+            implementation(libs.kiwa.holder.sdk.public)
             implementation(libs.amz.app.platform.presenter.molecule.public)
         }
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//        }
     }
 }
 

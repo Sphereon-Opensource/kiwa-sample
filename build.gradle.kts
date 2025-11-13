@@ -20,7 +20,7 @@
 
 allprojects {
     group = "com.sphereon.kiwa.sample"
-    version = "0.1.0-SNAPSHOT"
+    version = "0.2.0-SNAPSHOT"
 
     plugins.withType<MavenPublishPlugin> {
         configure<PublishingExtension> {
@@ -48,7 +48,6 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.jvm) apply false
     alias(sphereonplug.plugins.com.vanniktech.maven.publish) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.serialization) apply false
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin) apply false
     alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlin.android) apply false
     alias(sphereonplug.plugins.dev.petuska.npm.publish.dev.petuska.npm.publish.gradle.plugin) apply false
@@ -85,9 +84,6 @@ subprojects {
 
 
 
-    // Allow opting-out from inside a module by setting:
-    //   skipDetekt=true  (in the module's gradle.properties or via -PskipDetekt=true)
-//    val skipByProperty = (findProperty("skipDetekt") as? String)?.toBoolean() == true
     val isIncluded = (path in detektIncluded) /*|| !skipByProperty*/
 
     if (isIncluded) {
@@ -184,27 +180,3 @@ tasks.register("detektFixAll") {
         }
     )
 }
-
-repositories {
-    // Do not remove the content part when maven local is at the top!
-    // https://slack-chats.kotlinlang.org/t/27045384/hi-there-i-have-a-very-annoying-internal-compiler-error-here
-    mavenLocal {
-        content {
-            includeGroupAndSubgroups("com.sphereon")
-        }
-    }
-    mavenCentral()
-    google()
-    gradlePluginPortal()
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-    }
-    maven {
-        url = uri("https://aws.oss.sonatype.org/content/repositories/snapshots/")
-    }
-    maven {
-        url = uri("https://raw.githubusercontent.com/Deezer/KustomExport/mvn-repo")
-    }
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-}
-

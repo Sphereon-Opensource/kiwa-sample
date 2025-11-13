@@ -26,7 +26,6 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
@@ -39,11 +38,8 @@ kotlin {
         }
     }
 
-//    jvm("desktop")
 
     sourceSets {
-//        val desktopMain by getting
-
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(sphereonlib.androidx.activity.compose)
@@ -64,24 +60,18 @@ kotlin {
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
-            implementation(libs.sphereon.core.api.public)
-            implementation(libs.bundles.kotlin.inject)
+            implementation(libs.kiwa.holder.sdk.public)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
-            implementation("com.russhwolf:multiplatform-settings:1.3.0")
-            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
-            implementation("com.russhwolf:multiplatform-settings-coroutines:1.3.0")
-            implementation("com.russhwolf:multiplatform-settings-datastore:1.3.0")
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.no.arg)
+            implementation(libs.multiplatform.settings.coroutines)
+            implementation(libs.multiplatform.settings.datastore)
         }
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
-            implementation(libs.amz.kotlin.inject.impl)
         }
-       /* desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-        }*/
     }
 }
 

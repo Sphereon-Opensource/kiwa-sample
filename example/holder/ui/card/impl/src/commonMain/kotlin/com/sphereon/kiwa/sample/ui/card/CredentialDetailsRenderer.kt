@@ -17,7 +17,9 @@
 
 package com.sphereon.kiwa.sample.ui.card
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,17 +29,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,7 +63,6 @@ import software.amazon.app.platform.renderer.ComposeRenderer
 class CredentialDetailsRenderer(
     private val cardRenderer: CredentialCardRenderer
 ) : ComposeRenderer<CredentialDetailsPresenter.Model>() {
-
     @Composable
     override fun Compose(model: CredentialDetailsPresenter.Model) {
         when (model) {
@@ -73,6 +84,18 @@ class CredentialDetailsRenderer(
             TabSection(model)
             // Content based on selected tab
             TabContent(model)
+        }
+
+        // Full-screen image modal
+        model.fullScreenImage?.let { (imageData, label) ->
+            val imageBitmap = remember(imageData) { decodeImageBitmap(imageData) }
+            if (imageBitmap != null) {
+                FullScreenImageModal(
+                    imageBitmap = imageBitmap,
+                    contentDescription = label,
+                    onClose = { model.onEvent(CredentialDetailsPresenter.Event.CloseImage) }
+                )
+            }
         }
 
         // Delete confirmation modal
@@ -126,7 +149,9 @@ class CredentialDetailsRenderer(
     }
 
     @Composable
-    private fun TabContent(model: CredentialDetailsPresenter.Model.Content) {
+    private fun TabContent(
+        model: CredentialDetailsPresenter.Model.Content,
+    ) {
         when (model.selectedTab) {
             CredentialDetailsPresenter.Tab.VerifiedInfo -> VerifiedInfoList(model)
             CredentialDetailsPresenter.Tab.Activity -> ActivityPlaceholder()
@@ -184,30 +209,16 @@ class CredentialDetailsRenderer(
     }
 
     @Composable
-    private fun VerifiedInfoList(model: CredentialDetailsPresenter.Model.Content) {
+    private fun VerifiedInfoList(
+        model: CredentialDetailsPresenter.Model.Content
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
             if (model.verifiedItems.isNotEmpty()) {
-                itemsIndexed(model.verifiedItems) { idx, item ->
-                    if (idx > 0) {
-                        Divider(color = AppColors.Screen.foreground.copy(alpha = 0.15f))
-                    }
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                        Text(
-                            text = item.label,
-                            color = AppColors.Screen.foreground.copy(alpha = 0.75f),
-                            fontSize = 12.sp
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = item.value,
-                            color = AppColors.Screen.foreground,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp
-                        )
-                    }
+                model.verifiedItems.forEach { item ->
+                    renderVerifiedInfoItem(item, level = 0, model = model)
                 }
             } else {
                 item {
@@ -215,6 +226,141 @@ class CredentialDetailsRenderer(
                         Text("No verified data elements", color = AppColors.Screen.foreground.copy(alpha = 0.8f))
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Utility to render an image from ByteArray if present. Now supports click to expand.
+     */
+    @Composable
+    private fun VerifiedInfoImage(
+        imageData: ByteArray?,
+        contentDescription: String?,
+        modifier: Modifier = Modifier,
+        onClick: ((ByteArray, String) -> Unit)? = null
+    ) {
+        if (imageData == null) return
+        val imageBitmap: ImageBitmap? = remember(imageData) {
+            decodeImageBitmap(imageData)
+        }
+        if (imageBitmap != null) {
+            val clickableModifier =
+                if (onClick != null)
+                    modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).clickable {
+                        onClick(imageData, contentDescription ?: "")
+                    }
+                else
+                    modifier.size(56.dp)
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = contentDescription,
+                contentScale = ContentScale.Fit,
+                modifier = clickableModifier
+            )
+        }
+    }
+
+    /**
+     * Recursively renders a verified info item with proper indentation based on nesting level.
+     */
+    private fun androidx.compose.foundation.lazy.LazyListScope.renderVerifiedInfoItem(
+        item: CredentialDetailsPresenter.VerifiedInfoItem,
+        level: Int,
+        model: CredentialDetailsPresenter.Model.Content
+    ) {
+        item {
+            val indentDp = (level * 16).dp
+            val itemValue = item.value
+            Column(
+                modifier = Modifier
+                    .padding(start = indentDp, top = 8.dp, bottom = 8.dp)
+            ) {
+                // Only show label if it's not empty
+                if (item.label.isNotEmpty()) {
+                    Text(
+                        text = item.label,
+                        color = AppColors.Screen.foreground.copy(alpha = 0.75f),
+                        fontSize = 12.sp
+                    )
+                }
+                if (item.imageData != null) {
+                    VerifiedInfoImage(
+                        imageData = item.imageData,
+                        contentDescription = item.label.ifEmpty { null },
+                        modifier = Modifier,
+                        onClick = { imgData, desc ->
+                            model.onEvent(CredentialDetailsPresenter.Event.ViewImage(imgData, desc))
+                        }
+                    )
+                }
+                if (itemValue != null) {
+                    if (item.label.isNotEmpty() || item.imageData != null) {
+                        Spacer(Modifier.height(2.dp))
+                    }
+                    Text(
+                        text = itemValue,
+                        color = AppColors.Screen.foreground,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+
+        // Render children recursively
+        item.children?.forEach { child ->
+            renderVerifiedInfoItem(child, level + 1, model)
+        }
+
+        // Add divider after the entire item tree (only at root level)
+        if (level == 0) {
+            item {
+                HorizontalDivider(color = AppColors.Screen.foreground.copy(alpha = 0.15f))
+            }
+        }
+    }
+
+    /**
+     * Full screen image modal with close button.
+     */
+    @Composable
+    private fun FullScreenImageModal(
+        imageBitmap: ImageBitmap?,
+        contentDescription: String?,
+        onClose: () -> Unit
+    ) {
+        if (imageBitmap == null) return
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColors.Screen.background.copy(alpha = 0.98f))
+                .clickable { onClose() }
+        ) {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = contentDescription,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxSize()
+                    .padding(56.dp),
+                contentScale = ContentScale.Fit
+            )
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.Surface.sheet.copy(alpha = 0.9f))
+            ) {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = "Close",
+                    tint = AppColors.Screen.foreground,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
     }

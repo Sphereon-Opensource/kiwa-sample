@@ -69,7 +69,7 @@ class NfcEngagementNavigationServiceImpl(
 ) : NfcEngagementNavigationService {
 
     /** Logger instance tagged with the service name for tracking operations. */
-    private val log = log.logManager.withTagSync("NfcEngagementNavigationService")
+    private val log = log.logManager.withTag("NfcEngagementNavigationService")
 
     /** Coroutine job for managing the engagement monitoring lifecycle. */
     private var monitoringJob: Job? = null
@@ -146,7 +146,7 @@ class NfcEngagementNavigationServiceImpl(
         monitoringJob = serviceScope.launch {
             engagementManager.eventHub.engagementEvents.collect { event ->
                 log.debug("NFCNAV: Engagement event: $event")
-                if (event is MdocEngagementEvent.Transfer || event is MdocEngagementEvent.Connecting) {
+                if (event is MdocEngagementEvent.Connecting) {
                     log.info("NFCNAV: ${event} event received!!")
                     handleConnectedEvent()
                 }

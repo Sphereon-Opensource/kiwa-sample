@@ -48,7 +48,7 @@
  */
 package com.sphereon.kiwa.sample.app
 
-import com.sphereon.core.api.SyncLogService
+import com.sphereon.core.api.LogService
 import com.sphereon.di.context.UserContextManager
 import com.sphereon.kiwa.sample.ui.auth.AuthSessionService
 import me.tatarka.inject.annotations.Inject
@@ -81,7 +81,7 @@ class AppServicesImpl(
     override val rendererFactory: ComposeAndroidRendererFactory
         get() = application.rendererFactory
 
-    override val log: SyncLogService
+    override val log: LogService
         get() = application.log
 
     override val userContextManager: UserContextManager

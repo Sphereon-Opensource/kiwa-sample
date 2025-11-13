@@ -28,7 +28,6 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
@@ -54,38 +53,26 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.viewmodel)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.runtime.compose)
-//            implementation(libs.com.sphereon.core.api.public)
-//            implementation(libs.com.sphereon.core.api.default)
-//            implementation(libs.bundles.kotlin.inject)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
-            implementation(libs.sphereon.core.api.public)
-            implementation(libs.sphereon.core.api.default)
-            implementation(libs.sphereon.crypto.kms.software)
+            implementation(libs.kiwa.holder.sdk.public)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCoreImpl)
             implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
-            implementation(libs.sphereon.cbor)
-            implementation(libs.sphereon.mdoc.core)
-            // Removed implementation(libs.kiwa.holder.sdk.impl)
         }
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
-            implementation(libs.amz.kotlin.inject.impl)
         }
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-//        }
     }
 }
 
@@ -125,11 +112,6 @@ ksp {
 }
 
 dependencies {
-//    addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
-//    add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
-//    add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
-//    add("kspDesktop", libs.anvil.compiler.ksp)
-
     addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
     add("kspAndroid", libs.amz.kotlin.inject.contribute.public)
     add("kspAndroid", libs.amz.kotlin.inject.contribute.code.generators)

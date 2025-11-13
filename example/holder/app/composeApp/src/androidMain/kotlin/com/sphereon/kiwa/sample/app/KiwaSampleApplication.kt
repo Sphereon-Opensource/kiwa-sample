@@ -33,7 +33,7 @@ package com.sphereon.kiwa.sample.app
 
 import android.app.Application
 import android.content.Intent
-import com.sphereon.core.api.SyncLogService
+import com.sphereon.core.api.LogService
 import com.sphereon.core.api.conf.DefaultPrincipalMapPropertySource
 import com.sphereon.core.api.conf.DefaultTenantMapPropertySource
 import com.sphereon.crypto.core.DefaultCallbacks
@@ -90,7 +90,7 @@ class KiwaSampleApplication : Application() {
         private set
 
     /** Application-wide logging service for operation tracking and debugging. */
-    lateinit var log: SyncLogService
+    lateinit var log: LogService
         private set
 
     override fun onCreate() {
@@ -110,6 +110,7 @@ class KiwaSampleApplication : Application() {
         println("KiwaSampleApplication: Initializing dependency injection components")
         appComponent = AndroidAppComponent::class.create(this)
         appComponent.initRootScopeProvider()
+        log = appComponent.appLogManager.withTag("test-app-main")
         println("KiwaSampleApplication: Dependency injection components initialized")
 
         // Configure platform-specific directory providers for keystore management
@@ -144,27 +145,26 @@ class KiwaSampleApplication : Application() {
         )
 
         // Set up cryptographic verification services
-        println("KiwaSampleApplication: Setting up cryptographic verification services")
+        log.debug("KiwaSampleApplication: Setting up cryptographic verification services")
         DefaultCallbacks.setX509Default(X509VerifyServiceJvmAdapter())
 
         // Initialize logging and renderer factory
-        println("KiwaSampleApplication: Initializing logging and renderer factory")
-        log = appComponent.appLogManager.withTagSync("test-app-main")
+        log.debug("KiwaSampleApplication: Initializing logging and renderer factory")
         rendererFactory = ComposeAndroidRendererFactory.createForComposeUi(
             rootScopeProvider = appComponent.rootScopeProvider as software.amazon.app.platform.scope.RootScopeProvider
         )
-        println("KiwaSampleApplication: Renderer factory created")
+        log.debug("KiwaSampleApplication: Renderer factory created")
 
         // Start NFC service early to initialize it at app startup
-        println("KiwaSampleApplication: Starting NFC service")
+        log.debug("KiwaSampleApplication: Starting NFC service")
         try {
             startService(Intent(this, MdocNfcService::class.java))
             println("KiwaSampleApplication: NFC service started successfully")
         } catch (e: Exception) {
-            log.error("KiwaSampleApplication: Failed to start NFC service: ${e.message}", throwable = e)
+            log.error("KiwaSampleApplication: Failed to start NFC service: ${e.message}", exception = e)
         }
 
-        println("KiwaSampleApplication: === onCreate() COMPLETE ===")
+        log.debug("KiwaSampleApplication: === onCreate() COMPLETE ===")
     }
 
     /**

@@ -22,19 +22,26 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.sample.ui.card.CredentialCardPresenter
+import com.sphereon.kiwa.sample.ui.core.backstack.LocalBackstackScope
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter.DocRequestSection
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter.Event
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter.Input
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter.Model
+import com.sphereon.kiwa.sample.ui.core.backstack.PresenterBackstackScope
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleMdocStore
 import com.sphereon.mdoc.data.device.DeviceRequest
 import com.sphereon.mdoc.data.device.DocRequest
 import com.sphereon.mdoc.data.device.DocumentWithKeyAlias
+import com.sphereon.mdoc.engagement.MdocEngagementManager
 import com.sphereon.mdoc.transfer.MapDrivenDocRequestSelector
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.tatarka.inject.annotations.Inject
+import software.amazon.app.platform.presenter.molecule.backgesture.BackHandlerPresenter
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 
 /**
@@ -44,7 +51,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 @ContributesBinding(SessionScope::class)
 class MdocInformationRequestPresenterImpl(
     private val credentialCardPresenter: CredentialCardPresenter,
-    private val storage: SimpleMdocStore
+    private val storage: SimpleMdocStore,
+    private val engagementManager: MdocEngagementManager
 ) : MdocInformationRequestPresenter {
 
     private data class DocRequestSectionState(
@@ -56,6 +64,16 @@ class MdocInformationRequestPresenterImpl(
     @Composable
     override fun present(input: Input): Model {
         val deviceRequest = input.deviceRequest
+        val backstack: PresenterBackstackScope = checkNotNull(LocalBackstackScope.current)
+        val coroutineScope = rememberCoroutineScope()
+
+        // Handle back button - close all engagements before navigating back
+        BackHandlerPresenter(enabled = true) {
+            runBlocking {
+                engagementManager.closeAll()
+            }
+            backstack.pop()
+        }
 
         // State for our sections, loaded asynchronously
         var docRequestSectionStates by remember(deviceRequest) {
@@ -68,12 +86,19 @@ class MdocInformationRequestPresenterImpl(
             docRequestSectionStates = sections
         }
 
-        val docRequestDocRequestSections: List<DocRequestSection> = buildDocRequestSections(docRequestSectionStates)
+        // Filter out sections with no matching docs, but only if at least one section has docs
+        val filteredStates = if (docRequestSectionStates.any { it.matchingDocs.isNotEmpty() }) {
+            docRequestSectionStates.filter { it.matchingDocs.isNotEmpty() }
+        } else {
+            docRequestSectionStates
+        }
 
-        val canContinue = docRequestSectionStates.isNotEmpty()
+        val docRequestDocRequestSections: List<DocRequestSection> = buildDocRequestSections(filteredStates)
+
+        val canContinue = filteredStates.isNotEmpty() && filteredStates.all { it.selectedIndex != null }
 
         val onEvent: (Event) -> Unit = { ev ->
-            docRequestSectionStates = handleEvent(ev, docRequestSectionStates, canContinue, input)
+            docRequestSectionStates = handleEvent(ev, docRequestSectionStates, filteredStates, canContinue, input, backstack, coroutineScope)
         }
 
         return Model.Content(
@@ -167,28 +192,38 @@ class MdocInformationRequestPresenterImpl(
     private fun handleEvent(
         event: Event,
         currentStates: List<DocRequestSectionState>,
+        filteredStates: List<DocRequestSectionState>,
         canContinue: Boolean,
-        input: Input
+        input: Input,
+        backstack: PresenterBackstackScope,
+        coroutineScope: kotlinx.coroutines.CoroutineScope
     ): List<DocRequestSectionState> {
         return when (event) {
             is Event.OnCardSelected -> {
-                currentStates.mapIndexed { index, sectionState ->
-                    if (index == event.sectionIndex) {
-                        val newIndex = if (sectionState.selectedIndex == event.cardIndex) {
-                            sectionState.selectedIndex
+                // Map the filtered index to the original state
+                val targetState = filteredStates.getOrNull(event.sectionIndex)
+                if (targetState != null) {
+                    currentStates.map { sectionState ->
+                        if (sectionState.docRequest == targetState.docRequest) {
+                            val newIndex = if (sectionState.selectedIndex == event.cardIndex) {
+                                sectionState.selectedIndex
+                            } else {
+                                event.cardIndex
+                            }
+                            sectionState.copy(selectedIndex = newIndex)
                         } else {
-                            event.cardIndex
+                            sectionState
                         }
-                        sectionState.copy(selectedIndex = newIndex)
-                    } else {
-                        sectionState
                     }
+                } else {
+                    currentStates
                 }
             }
 
             Event.OnShare -> {
                 if (canContinue) {
-                    val selections = currentStates
+                    // Only share from filtered states (those with matching docs)
+                    val selections = filteredStates
                         .mapNotNull { state ->
                             val index = state.selectedIndex
                             if (index != null) {
@@ -208,7 +243,11 @@ class MdocInformationRequestPresenterImpl(
                 currentStates
             }
             Event.OnDecline -> {
-                // No action on decline for now
+                // Decline the information request - close all engagements and navigate back
+                coroutineScope.launch {
+                    engagementManager.closeAll()
+                    backstack.pop()
+                }
                 currentStates
             }
         }

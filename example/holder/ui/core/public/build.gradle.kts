@@ -24,10 +24,8 @@ plugins {
     alias(sphereonplug.plugins.com.android.library)
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
-//    alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
 }
 
 kotlin {
@@ -38,10 +36,7 @@ kotlin {
         }
     }
 
-//    jvm("desktop")
-
     sourceSets {
-//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -55,12 +50,11 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-//            implementation(libs.bundles.kotlin.inject)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.presenter.molecule.impl)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
-            implementation(libs.sphereon.core.api.public)
+            implementation(libs.kiwa.holder.sdk.public)
             implementation(libs.sphereon.core.logger.mobile)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
@@ -71,44 +65,7 @@ kotlin {
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//        }
     }
-    /* ksp {
-         // We are using the Amazon App Platform binding processor instead!
-         arg("software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
-     }
-
-     dependencies {
-         addProvider("ksp", libs.kotlin.inject.compiler.ksp)
-         add("ksp", libs.amz.kotlin.inject.contribute.public)
-         add("ksp", libs.amz.kotlin.inject.contribute.code.generators)
-         add("ksp", libs.anvil.compiler.ksp)
-
-         addProvider("kspDesktop", libs.kotlin.inject.compiler.ksp)
-         add("kspDesktop", libs.amz.kotlin.inject.contribute.public)
-         add("kspDesktop", libs.amz.kotlin.inject.contribute.code.generators)
-         add("kspDesktop", libs.anvil.compiler.ksp)
-
-         addProvider("kspAndroid", libs.kotlin.inject.compiler.ksp)
-         add("kspAndroid", libs.amz.kotlin.inject.contribute.public)
-         add("kspAndroid", libs.amz.kotlin.inject.contribute.code.generators)
-         add("kspAndroid", libs.anvil.compiler.ksp)
-
-         addProvider("kspAndroidDebug", libs.kotlin.inject.compiler.ksp)
-         add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.public)
-         add("kspAndroidDebug", libs.amz.kotlin.inject.contribute.code.generators)
-         add("kspAndroidDebug", libs.anvil.compiler.ksp)
-
-         addProvider("kspAndroidTest", libs.kotlin.inject.compiler.ksp)
-         add("kspAndroidTest", libs.amz.kotlin.inject.contribute.public)
-         add("kspAndroidTest", libs.amz.kotlin.inject.contribute.code.generators)
-         add("kspAndroidTest", libs.anvil.compiler.ksp)
-
-
-
-     }*/
 }
 
 android {

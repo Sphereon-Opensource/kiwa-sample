@@ -26,7 +26,6 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
@@ -50,30 +49,8 @@ kotlin {
             }
         }*/
 
-//    jvm("desktop")
-
-    /*  @OptIn(ExperimentalWasmDsl::class)
-      wasmJs {
-          outputModuleName.set("composeApp")
-          browser {
-              val rootDirPath = project.rootDir.path
-              val projectDirPath = project.projectDir.path
-              commonWebpackConfig {
-                  outputFileName = "composeApp.js"
-                  devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                      static = (static ?: mutableListOf()).apply {
-                          // Serve sources to debug inside browser
-                          add(rootDirPath)
-                          add(projectDirPath)
-                      }
-                  }
-              }
-          }
-          binaries.executable()
-      }*/
 
     sourceSets {
-//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
@@ -89,50 +66,23 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.viewmodel)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.runtime.compose)
-            /*implementation(libs.sphereon.core.api.public)
-            implementation(libs.sphereon.core.api.default)
-            implementation(libs.sphereon.crypto.kms)
-            implementation(libs.sphereon.compat)*/
-            implementation(libs.bundles.kotlin.inject)
-//            api(libs.kiwa.holder.sdk.impl)
             implementation(libs.kiwa.holder.sdk.public)
-            /*  implementation(libs.kiwa.holder.sdk.public)
-              implementation(libs.sphereon.cbor)
-              implementation(libs.sphereon.crypto)
-              implementation(libs.sphereon.crypto.kms)
-
-              implementation(libs.sphereon.data.link.ble.public)
-              implementation(libs.sphereon.data.link.nfc.public)
-              implementation(libs.sphereon.mdoc.core)
-              implementation(libs.sphereon.mdoc.datatransfer)*/
-            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
-            // default deps are already injected by conventions plugin!
-            implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
-            implementation(sphereonlib.dev.whyoleg.cryptography.core)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
             implementation(libs.kottage)
             implementation(libs.qrcode.kotlin)
-            implementation(libs.sphereon.mdoc.datatransfer)
-            implementation(libs.sphereon.crypto.kms.software)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
             implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardImpl)
-            /*implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)*/
             implementation(compose.materialIconsExtended)
         }
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
-            implementation(libs.amz.kotlin.inject.impl)
         }
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//            implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.swing)
-//        }
     }
 }
 
@@ -164,20 +114,6 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
-/*
-
-compose.desktop {
-    application {
-        mainClass = "com.sphereon.kiwa.sample.app.MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.sphereon.kiwa.sample.app"
-            packageVersion = "1.0.0"
-        }
-    }
-}
-*/
 
 ksp {
     // We are using the Amazon App Platform binding processor instead!
@@ -185,15 +121,10 @@ ksp {
 }
 
 dependencies {
-//    val kspDesktopConfig = "kspDesktop"
     val kspAndroidConfig = "kspAndroid"
     val kspAndroidDebugConfig = "kspAndroidDebug"
     val kspAndroidTestConfig = "kspAndroidTest"
 
-//    addProvider(kspDesktopConfig, libs.kotlin.inject.compiler.ksp)
-//    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.public)
-//    add(kspDesktopConfig, libs.amz.kotlin.inject.contribute.code.generators)
-//    add(kspDesktopConfig, libs.anvil.compiler.ksp)
 
     addProvider(kspAndroidConfig, libs.kotlin.inject.compiler.ksp)
     add(kspAndroidConfig, libs.amz.kotlin.inject.contribute.public)

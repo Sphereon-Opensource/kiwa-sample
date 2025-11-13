@@ -21,6 +21,21 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+        fun RepositoryHandler.privateKiwaRepo(urlStr: String) {
+            maven {
+                url = uri(urlStr)
+                credentials {
+                    username = providers.environmentVariable("KIWA_REPO_USER")
+                        .orElse(providers.gradleProperty("kiwaRepoUser"))
+                        .orElse(providers.environmentVariable("NEXUS_USERNAME"))
+                        .orNull ?: throw GradleException("No KIWA_REPO_USER environment or kiwaRepoUser gradle property set to access the Kiwa repo")
+                    password = providers.environmentVariable("KIWA_REPO_PASSWORD")
+                        .orElse(providers.gradleProperty("kiwaRepoPassword"))
+                        .orElse(providers.environmentVariable("NEXUS_PASSWORD"))
+                        .orNull ?: throw GradleException("No KIWA_REPO_PASSWORD environment or kiwaRepoUser gradle property set to access the Kiwa repo")
+                }
+            }
+        }
         // Do not remove the content part when maven local is at the top!
         // https://slack-chats.kotlinlang.org/t/27045384/hi-there-i-have-a-very-annoying-internal-compiler-error-here
         mavenLocal {
@@ -48,6 +63,9 @@ pluginManagement {
         maven {
             url = uri("https://nexus.sphereon.com/repository/sphereon-opensource-releases")
         }
+        privateKiwaRepo("https://nexus.sphereon.com/repository/kiwa-snapshots")
+        privateKiwaRepo("https://nexus.sphereon.com/repository/kiwa-releases")
+
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 
@@ -59,14 +77,29 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("sphereonplug") {
-            from("com.sphereon.gradle:gradle-plugin-bom:0.1.2@toml")
+            from("com.sphereon.gradle:gradle-plugin-bom:0.3.2@toml")
         }
         create("sphereonlib") {
-            from("com.sphereon.gradle:library-bom:0.1.2@toml")
+            from("com.sphereon.gradle:library-bom:0.3.2@toml")
         }
 
     }
     repositories {
+        fun RepositoryHandler.privateKiwaRepo(urlStr: String) {
+            maven {
+                url = uri(urlStr)
+                credentials {
+                    username = providers.environmentVariable("KIWA_REPO_USER")
+                        .orElse(providers.gradleProperty("kiwaRepoUser"))
+                        .orElse(providers.environmentVariable("NEXUS_USERNAME"))
+                        .orNull ?: throw GradleException("No KIWA_REPO_USER environment or kiwaRepoUser gradle property set to access the Kiwa repo")
+                    password = providers.environmentVariable("KIWA_REPO_PASSWORD")
+                        .orElse(providers.gradleProperty("kiwaRepoPassword"))
+                        .orElse(providers.environmentVariable("NEXUS_PASSWORD"))
+                        .orNull ?: throw GradleException("No KIWA_REPO_PASSWORD environment or kiwaRepoUser gradle property set to access the Kiwa repo")
+                }
+            }
+        }
         // Do not remove the content part when maven local is at the top!
         // https://slack-chats.kotlinlang.org/t/27045384/hi-there-i-have-a-very-annoying-internal-compiler-error-here
         mavenLocal {
@@ -95,6 +128,8 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://nexus.sphereon.com/repository/sphereon-opensource-releases")
         }
+        privateKiwaRepo("https://nexus.sphereon.com/repository/kiwa-snapshots")
+        privateKiwaRepo("https://nexus.sphereon.com/repository/kiwa-releases")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 
     }

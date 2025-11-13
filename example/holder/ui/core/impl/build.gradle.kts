@@ -24,7 +24,6 @@ plugins {
     alias(sphereonplug.plugins.com.android.library)
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
-//    alias(sphereonplug.plugins.io.kotest.multiplatform.io.kotest.multiplatform.gradle.plugin)
     alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
     alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
@@ -38,10 +37,7 @@ kotlin {
         }
     }
 
-//    jvm("desktop")
-
     sourceSets {
-//        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(sphereonlib.androidx.activity.compose)
@@ -55,13 +51,11 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-//            implementation(libs.bundles.kotlin.inject)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.presenter.molecule.impl)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
             implementation(libs.sphereon.core.logger.mobile)
-//            implementation(libs.sphereon.core.api.public)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             implementation(sphereonlib.org.jetbrains.kotlinx.serialization.cbor)
@@ -72,9 +66,6 @@ kotlin {
         commonTest.dependencies {
             implementation(sphereonlib.org.jetbrains.kotlin.test)
         }
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//        }
     }
 }
 
@@ -110,20 +101,10 @@ ksp {
 }
 
 dependencies {
-    /*    addProvider("ksp", libs.kotlin.inject.compiler.ksp)
-        add("ksp", libs.amz.kotlin.inject.contribute.public)
-        add("ksp", libs.amz.kotlin.inject.contribute.code.generators)
-        add("ksp", libs.anvil.compiler.ksp)
-     */
-//    val kspDesktopTarget = "kspDesktop"
     val kspAndroidTarget = "kspAndroid"
     val kspAndroidDebugTarget = "kspAndroidDebug"
     val kspAndroidTestTarget = "kspAndroidTest"
 
-//    addProvider(kspDesktopTarget, libs.kotlin.inject.compiler.ksp)
-//    add(kspDesktopTarget, libs.amz.kotlin.inject.contribute.public)
-//    add(kspDesktopTarget, libs.amz.kotlin.inject.contribute.code.generators)
-//    add(kspDesktopTarget, libs.anvil.compiler.ksp)
 
     addProvider(kspAndroidTarget, libs.kotlin.inject.compiler.ksp)
     add(kspAndroidTarget, libs.amz.kotlin.inject.contribute.public)

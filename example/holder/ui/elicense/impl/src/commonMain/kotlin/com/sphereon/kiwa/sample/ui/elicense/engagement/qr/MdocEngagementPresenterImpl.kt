@@ -19,6 +19,7 @@ package com.sphereon.kiwa.sample.ui.elicense.engagement.qr
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.tatarka.inject.annotations.Inject
 import software.amazon.app.platform.presenter.molecule.MoleculePresenter
+import software.amazon.app.platform.presenter.molecule.backgesture.BackHandlerPresenter
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 
 /**
@@ -64,12 +66,21 @@ class MdocEngagementPresenterImpl(
     logManager: SessionLogManager
 ) : MdocEngagementPresenter {
 
-    private val log = logManager.withTagSync("EngagePresenter")
+    private val log = logManager.withTag("EngagePresenter")
 
     @Composable
     override fun present(input: MdocEngagementPresenter.Input): MdocEngagementPresenter.Model {
         val backstack = checkNotNull(LocalBackstackScope.current)
         val presenterScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+
+        // Handle back button - close all engagements before navigating back
+        BackHandlerPresenter(enabled = true) {
+            log.debug("Back button pressed - closing all engagements")
+            runBlocking {
+                engagementManager.closeAll()
+            }
+            backstack.pop()
+        }
 
         // Collect SessionUiState from the engagement manager's eventHub - this is our source of truth
         val sessionState by engagementManager.eventHub.sessionState.collectAsState()
@@ -98,12 +109,8 @@ class MdocEngagementPresenterImpl(
         // Cleanup on dispose
         DisposableEffect(Unit) {
             onDispose {
-                log.debug("Disposing presenter")
+                log.debug("Disposing presenter - cleaning up scope")
                 isSharing = false
-                runBlocking {
-                    engagementManager.closeAll()
-//                    activeEngagement?.let { engagementManager.closeEngagementByInstance(it) }?.also { log.debug("Closed engagement instance ${activeEngagement?.id}") }
-                }
                 presenterScope.cancel()
             }
         }
@@ -111,7 +118,7 @@ class MdocEngagementPresenterImpl(
 
         // Log engagement changes
         DisposableEffect(activeEngagement) {
-            log.debug("Current engagement changed: ${activeEngagement?.id}")
+            log.debug("Current engagement changed, now active: ${activeEngagement?.id}")
             onDispose {
             }
         }
@@ -132,7 +139,7 @@ class MdocEngagementPresenterImpl(
                 value = image
                 log.debug("QR code generated successfully for engagement ${engagement.id}")
             }.onFailure { e ->
-                log.error("QR generation failed: ${e.message}", throwable = e)
+                log.error("QR generation failed: ${e.message}", exception = e)
                 value = null
             }
         }
@@ -159,13 +166,20 @@ class MdocEngagementPresenterImpl(
                     }
 
                     UiStateEvent.Stopped -> {
-                        log.debug("Stopped event - navigating back (cleanup will happen in onDispose)")
-                        backstack.pop()
+                        log.debug("Stopped event - closing all engagements and navigating back")
+                        presenterScope.launch {
+                            engagementManager.closeAll()
+                            backstack.pop()
+                        }
                     }
 
                     UiStateEvent.SuccessComplete -> {
-                        log.debug("Success complete - navigating back (cleanup will happen in onDispose)")
-                        backstack.pop()
+                        log.debug("Success complete - closing any active engagements and navigating back")
+                        presenterScope.launch {
+                            // Close all engagements to ensure clean state
+                            engagementManager.closeAll()
+                            backstack.pop()
+                        }
                     }
 
                 }
@@ -236,6 +250,12 @@ class MdocEngagementPresenterImpl(
                 MdocEngagementPresenter.Model.Initial(onEvent)
             }
 
+            // If phase is ENGAGEMENT but there's no active engagement, it's stale state - treat as INITIAL
+            sessionState.phase == UiPhase.ENGAGEMENT && activeEngagement == null -> {
+                log.debug(">>> Stale ENGAGEMENT state detected (no active engagement) - treating as INITIAL")
+                MdocEngagementPresenter.Model.Initial(onEvent)
+            }
+
             sessionState.phase == UiPhase.ENGAGEMENT -> {
                 log.debug(">>> Returning Model: ENGAGEMENT (showQr=${sessionState.qrMode == QrMode.DISPLAY})")
                 // Show QR or NFC prompt based on SessionUiState
@@ -274,7 +294,7 @@ class MdocEngagementPresenterImpl(
                         log.debug(">>> Returning Model: CONNECTING")
                         val eng = activeEngagement
                         if (sessionState.deviceRequest == null && eng != null && eng.transferInstance.transmissionTypeSelected != null) {
-                            presenterScope.launch {
+                            LaunchedEffect(sessionState.deviceRequest) {
                                 log.debug("Retrieving device request from engagement")
                                 eng.transferInstance.manager.receiveDeviceRequest()
                                 log.debug("Retrieved device request from engagement")

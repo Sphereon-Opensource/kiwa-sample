@@ -54,7 +54,9 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(sphereonlib.androidx.activity.compose)
+            // Kiwa SDK Implementation in final Android project only
             implementation(libs.kiwa.holder.sdk.impl)
+            // Logger directly from the Sphereon Identity Development Kit as it is not exposed via the Kiwa SDK
             implementation(libs.sphereon.core.logger.mobile)
         }
         commonMain.dependencies {
@@ -71,13 +73,16 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.viewmodel)
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.runtime.compose)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
-            implementation(libs.amz.kotlin.inject.impl)
-            implementation(libs.amz.kotlin.inject.impl)
-            implementation(libs.amz.kotlin.inject.contribute.public)
+            // Kiwa SDK interfaces and common code
             implementation(libs.kiwa.holder.sdk.public)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.presenter.molecule.impl)
             implementation(libs.amz.app.platform.renderer.compose.public)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
+            implementation(libs.collection)
+            implementation(libs.qrcode.kotlin)
+            // Projects in this repo
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCoreImpl)
             implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
@@ -86,10 +91,6 @@ kotlin {
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardImpl)
-            implementation(libs.multiplatform.settings)
-            implementation(libs.multiplatform.settings.coroutines)
-            implementation(libs.collection)
-            implementation(libs.qrcode.kotlin)
         }
     }
 }
