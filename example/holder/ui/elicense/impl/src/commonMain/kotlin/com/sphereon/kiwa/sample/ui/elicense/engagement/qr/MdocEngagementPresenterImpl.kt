@@ -90,6 +90,7 @@ class MdocEngagementPresenterImpl(
 
         // Log state on every recomposition to understand state transitions
         log.debug("=== PRESENTER RECOMPOSITION ===")
+        log.debug("Engagement Manager Instance: ${engagementManager.hashCode()}")
         log.debug("SessionUiState: phase=${sessionState.phase}, qrMode=${sessionState.qrMode}, nfcMode=${sessionState.nfcMode}, userInteractionRequired=${sessionState.userInteractionRequired}, terminalOutcome=${sessionState.terminalOutcome}")
         log.debug("ActiveEngagement: ${activeEngagement?.id ?: "null"}")
         log.debug("===============================")
@@ -154,7 +155,7 @@ class MdocEngagementPresenterImpl(
                         presenterScope.launch {
                             val engagementResult = engagementManager.createEngagement {
                                 engagement { qr {} }
-                                retrieval { ble { centralClientMode = true; peripheralServerMode = false } }
+                                retrieval { ble { centralClientMode = false; peripheralServerMode = true } }
                             }
                             engagementResult.onSuccess { engagement ->
                                 engagement.start()

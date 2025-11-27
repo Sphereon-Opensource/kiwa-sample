@@ -93,6 +93,10 @@ class NfcEngagementNavigationServiceImpl(
     @Volatile
     private var localPendingNavigation: NfcEngagementNavigationService.PendingNavigation? = null
 
+    /** Tracks the engagement ID for which we've already triggered navigation to avoid duplicates */
+    @Volatile
+    private var navigatedEngagementId: String? = null
+
     init {
         this.log.info("NFCNAV: NfcEngagementNavigationService initialized")
         this.log.info("NFCNAV DEBUG: NfcEngagementNavigationService created in context: $context")
@@ -134,6 +138,7 @@ class NfcEngagementNavigationServiceImpl(
         log.info("NFCNAV: Starting engagement monitoring")
         log.info("User Context: ${context.context}")
         log.info("Session Context: ${context}")
+        log.info("NFCNAV: Engagement Manager Instance: ${engagementManager.hashCode()}")
         log.info("NFCNAV: ################################")
         monitoringJob?.cancel()
         monitoringJob = null
@@ -144,11 +149,24 @@ class NfcEngagementNavigationServiceImpl(
         }
 
         monitoringJob = serviceScope.launch {
+            log.info("NFCNAV: Started monitoring for NFC engagement")
+            log.info("NFCNAV: Collecting from engagement manager: ${engagementManager.hashCode()}")
+
+            // Monitor engagement events directly - SessionUiProjector ignores Connecting events!
+            // So we can't rely on sessionState.phase transitions for NFC engagements
             engagementManager.eventHub.engagementEvents.collect { event ->
-                log.debug("NFCNAV: Engagement event: $event")
+                log.info("NFCNAV: *** Engagement event received: $event")
+
+                // When we get a Connecting event for an NFC engagement, navigate to the screen
                 if (event is MdocEngagementEvent.Connecting) {
-                    log.info("NFCNAV: ${event} event received!!")
-                    handleConnectedEvent()
+                    val nfcEng = engagementManager.nfcEngagement.value
+                    if (nfcEng != null && nfcEng.id.toString() != navigatedEngagementId) {
+                        log.info("NFCNAV: NFC Connecting event for engagement ${nfcEng.id}, navigating to engagement screen")
+                        navigatedEngagementId = nfcEng.id.toString()
+                        handleNfcConnectingEvent()
+                    } else {
+                        log.debug("NFCNAV: Connecting event but no NFC engagement or already navigated")
+                    }
                 }
             }
         }
@@ -165,6 +183,7 @@ class NfcEngagementNavigationServiceImpl(
         log.info("NFCNAV: Stopping engagement monitoring")
         monitoringJob?.cancel()
         monitoringJob = null
+        navigatedEngagementId = null // Reset to allow navigation for new engagements
     }
 
     private suspend fun handleConnectedEvent() {
@@ -183,6 +202,44 @@ class NfcEngagementNavigationServiceImpl(
 
         } catch (e: Exception) {
             log.error("NFCNAV: Failed to start transfer manager: ${e.message}")
+        }
+    }
+
+    private suspend fun handleNfcTransferPhase() {
+        val engagement = engagementManager.nfcEngagement.value
+        if (engagement == null) {
+            log.warn("NFCNAV: NFC Transfer phase detected but no current engagement available")
+            return
+        }
+        try {
+            val success = navigateToNfcEngagement()
+            if (success) {
+                log.info("NFCNAV: Successfully navigated to engagement screen for NFC transfer")
+            } else {
+                log.warn("NFCNAV: Failed to navigate to engagement screen")
+            }
+
+        } catch (e: Exception) {
+            log.error("NFCNAV: Failed to handle NFC transfer phase: ${e.message}")
+        }
+    }
+
+    private suspend fun handleNfcConnectingEvent() {
+        val engagement = engagementManager.nfcEngagement.value
+        if (engagement == null) {
+            log.warn("NFCNAV: NFC Connecting event but no current engagement available")
+            return
+        }
+        try {
+            val success = navigateToNfcEngagement()
+            if (success) {
+                log.info("NFCNAV: Successfully navigated to engagement screen for NFC connecting")
+            } else {
+                log.warn("NFCNAV: Failed to navigate to engagement screen")
+            }
+
+        } catch (e: Exception) {
+            log.error("NFCNAV: Failed to handle NFC connecting event: ${e.message}")
         }
     }
 

@@ -14,9 +14,12 @@
  */
 package com.sphereon.kiwa.sample.app
 
+import android.Manifest
 import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +28,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.content.ContextCompat
 import com.sphereon.data.link.ble.AndroidBlePermissionsHelper
 import software.amazon.app.platform.renderer.getComposeRenderer
 
@@ -73,6 +77,22 @@ class MainActivity : ComponentActivity() {
         }
 
     /**
+     * Additional launcher for BLUETOOTH_ADVERTISE permission (Android 12+).
+     *
+     * This is needed because the external BLE permissions helper may not include
+     * BLUETOOTH_ADVERTISE in its permission requests.
+     */
+    private val advertisePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            val advertiseGranted = result[Manifest.permission.BLUETOOTH_ADVERTISE] ?: false
+            if (advertiseGranted) {
+                println("BLUETOOTH_ADVERTISE permission granted")
+            } else {
+                println("BLUETOOTH_ADVERTISE permission NOT granted")
+            }
+        }
+
+    /**
      * Called when the activity is being created.
      *
      * This method performs activity-specific initialization including:
@@ -107,6 +127,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Check and request BLUETOOTH_ADVERTISE permission explicitly for Android 12+
+        // This is needed because the external BLE helper may not include this permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val advertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE
+            if (ContextCompat.checkSelfPermission(this, advertisePermission) != PackageManager.PERMISSION_GRANTED) {
+                println("BLUETOOTH_ADVERTISE permission not granted, requesting it")
+                advertisePermissionLauncher.launch(arrayOf(advertisePermission))
+            } else {
+                println("BLUETOOTH_ADVERTISE permission already granted")
+            }
+        }
+
         println("MainActivity: BLE permissions setup complete")
 
         // Set up the UI content with template-based rendering

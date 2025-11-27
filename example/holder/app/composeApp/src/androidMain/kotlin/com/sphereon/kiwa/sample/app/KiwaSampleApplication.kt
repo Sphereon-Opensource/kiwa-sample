@@ -43,6 +43,10 @@ import com.sphereon.crypto.kms.keystore.software.PlatformDirProvider
 import com.sphereon.crypto.kms.keystore.software.registerSoftwareKeyStoreSerialization
 import com.sphereon.crypto.kms.provider.software.registerSoftwareKmsSerialization
 import com.sphereon.kiwa.sample.ui.auth.AuthSessionService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import software.amazon.app.platform.renderer.ComposeAndroidRendererFactory
 import java.io.File
 
@@ -68,15 +72,17 @@ class KiwaSampleApplication : Application() {
     /** Service for managing NFC engagement navigation and coordination. */
     lateinit var nfcEngagementNavigationService: NfcEngagementNavigationService
 
+    /** Observer for managing BLE engagement lifecycle and foreground service. */
+    private var bleLifecycleObserver: BleEngagementLifecycleObserver? = null
 
     /**
      * Authentication session service for managing user authentication and sessions.
      *
      * This property provides access to the authentication service through the app component,
      * enabling session management and user authentication workflows.
-     * 
+     *
      * The AuthSessionService contains flows for context and session components, as well as
-     * authentication state. Use authSessionService.contextComponentFlow and 
+     * authentication state. Use authSessionService.contextComponentFlow and
      * authSessionService.sessionComponentFlow to access the current components.
      */
     val authSessionService: AuthSessionService
@@ -162,6 +168,42 @@ class KiwaSampleApplication : Application() {
             println("KiwaSampleApplication: NFC service started successfully")
         } catch (e: Exception) {
             log.error("KiwaSampleApplication: Failed to start NFC service: ${e.message}", exception = e)
+        }
+
+        // Initialize BLE engagement lifecycle observer
+        // This observer monitors engagement manager (from session scope) and starts/stops
+        // foreground service to keep BLE alive when screen is locked.
+        // We observe the active user's session to get the engagement manager
+        log.debug("KiwaSampleApplication: Setting up BLE engagement lifecycle observer")
+        try {
+            bleLifecycleObserver = BleEngagementLifecycleObserverImpl(appComponent.appLogManager)
+
+            // Observe active user context changes to hook into engagement manager
+            CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).launch {
+                appComponent.userContextManager.activeInstance.collect { userContext ->
+                    if (!userContext.userContextManager.isAnonymous() && userContext.isCurrentlyActive()) {
+                        log.info("User logged in, initializing BLE observer with engagement manager")
+                        try {
+                            val sessionInstance = userContext.sessionContextManager.getActive()
+                            // Get engagement manager via reflection as it's in generated code
+                            val componentClass = sessionInstance.component::class.java
+                            val method = componentClass.getMethod("getMdocEngagementManager")
+
+                            @Suppress("UNCHECKED_CAST")
+                            val engagementManager = method.invoke(sessionInstance.component) as com.sphereon.mdoc.engagement.MdocEngagementManager
+                            bleLifecycleObserver?.initialize(this@KiwaSampleApplication, engagementManager)
+                        } catch (e: Exception) {
+                            log.error("Failed to get engagement manager for BLE observer: ${e.message}", exception = e)
+                        }
+                    } else {
+                        log.info("User logged out, shutting down BLE observer")
+                        bleLifecycleObserver?.shutdown()
+                    }
+                }
+            }
+            println("KiwaSampleApplication: BLE lifecycle observer initialized")
+        } catch (e: Exception) {
+            log.error("KiwaSampleApplication: Failed to initialize BLE lifecycle observer: ${e.message}", exception = e)
         }
 
         log.debug("KiwaSampleApplication: === onCreate() COMPLETE ===")
