@@ -88,6 +88,9 @@ class MdocEngagementPresenterImpl(
         // Collect active engagement from manager - single source of truth
         val activeEngagement by engagementManager.activeEngagement.collectAsState()
 
+        // Track QR scanner mode
+        var showQrScanner by remember { mutableStateOf(false) }
+
         // Log state on every recomposition to understand state transitions
         log.debug("=== PRESENTER RECOMPOSITION ===")
         log.debug("Engagement Manager Instance: ${engagementManager.hashCode()}")
@@ -152,6 +155,7 @@ class MdocEngagementPresenterImpl(
                 when (event) {
                     UiStateEvent.ShowQr -> {
                         log.debug("User clicked 'Show QR' - creating QR engagement via manager")
+                        showQrScanner = false
                         presenterScope.launch {
                             val engagementResult = engagementManager.createEngagement {
                                 engagement { qr {} }
@@ -166,7 +170,15 @@ class MdocEngagementPresenterImpl(
                         }
                     }
 
+                    UiStateEvent.ShowQrScanner -> {
+                        log.debug("User clicked 'Scan QR' - enabling QR scanner mode")
+                        showQrScanner = true
+                        // Don't create engagement yet - wait for QR scan
+                        // The scanner will trigger onQrScanned when a code is detected
+                    }
+
                     UiStateEvent.Stopped -> {
+                        showQrScanner = false
                         log.debug("Stopped event - closing all engagements and navigating back")
                         presenterScope.launch {
                             engagementManager.closeAll()
@@ -183,6 +195,92 @@ class MdocEngagementPresenterImpl(
                         }
                     }
 
+                }
+                Unit
+            }
+        }
+
+        // Handle QR code scanned for reverse engagement
+        val onQrScanned = remember(presenterScope) {
+            { scannedData: String ->
+                log.info("📷 QR SCANNED! Length: ${scannedData.length}, First 30 chars: '${scannedData.take(30)}'")
+                log.debug("Full scanned data: $scannedData")
+                when {
+                    // 18013-7 website via deeplink/QR
+                    scannedData.startsWith("mdoc://") -> {
+                        log.info("VALID mdoc:// URI - Initiating toApp with website retrieval (18013-7)")
+                        showQrScanner = false
+                        presenterScope.launch {
+                            runCatching {
+                                engagementManager.toApp(scannedData)
+                                    .onSuccess {
+                                        log.debug("toApp (website) initiated successfully")
+                                    }
+                                    .onFailure { error ->
+                                        log.error(
+                                            "toApp (website) failed: ${error.message}",
+                                            exception = (error as? com.sphereon.core.api.error.IdkError)?.exception
+                                        )
+                                        showQrScanner = false
+                                    }
+                            }.onFailure { e ->
+                                log.error("Exception calling toApp (website)", exception = e)
+                                showQrScanner = false
+                            }
+                        }
+                    }
+
+                    // 18013-5 reverse engagement with BLE transfer
+                    scannedData.startsWith("mdoc:") && !scannedData.startsWith("mdoc://") && !scannedData.startsWith("mdoc-openid4vp://") -> {
+                        log.info("VALID mdoc: URI - Initiating toApp with BLE retrieval (18013-5)")
+                        showQrScanner = false
+                        presenterScope.launch {
+                            runCatching {
+                                engagementManager.toApp(scannedData)
+                                    .onSuccess {
+                                        log.debug("toApp (BLE) initiated successfully")
+                                    }
+                                    .onFailure { error ->
+                                        log.error(
+                                            "toApp (BLE) failed: ${error.message}",
+                                            exception = (error as? com.sphereon.core.api.error.IdkError)?.exception
+                                        )
+                                        showQrScanner = false
+                                    }
+                            }.onFailure { e ->
+                                log.error("Exception calling toApp (BLE)", exception = e)
+                                showQrScanner = false
+                            }
+                        }
+                    }
+
+                    // OpenID4VP
+                    scannedData.startsWith("mdoc-openid4vp://") -> {
+                        log.info("VALID mdoc-openid4vp:// URI - Initiating toApp with OID4VP retrieval")
+                        showQrScanner = false
+                        presenterScope.launch {
+                            runCatching {
+                                engagementManager.toApp(scannedData)
+                                    .onSuccess {
+                                        log.debug("toApp (OID4VP) initiated successfully")
+                                    }
+                                    .onFailure { error ->
+                                        log.error(
+                                            "toApp (OID4VP) failed: ${error.message}",
+                                            exception = (error as? com.sphereon.core.api.error.IdkError)?.exception
+                                        )
+                                        showQrScanner = false
+                                    }
+                            }.onFailure { e ->
+                                log.error("Exception calling toApp (OID4VP)", exception = e)
+                                showQrScanner = false
+                            }
+                        }
+                    }
+
+                    else -> {
+                        log.warn("⚠️ Invalid QR code: Expected 'mdoc://', 'mdoc:', or 'mdoc-openid4vp://' - got prefix: ${scannedData.take(20)}")
+                    }
                 }
                 Unit
             }
@@ -244,26 +342,38 @@ class MdocEngagementPresenterImpl(
 
         // Build model based purely on SessionUiState - it's the source of truth
         // Special case: If TERMINAL state but no active engagement AND we never had an engagement,
-        // this is stale state from a previous session - treat as INITIAL
+        // this is stale state from a previous session - treat as INITIAL with toggle UI
         val model = when {
             sessionState.phase == UiPhase.TERMINAL && activeEngagement == null && !hasHadEngagement.value -> {
-                log.debug(">>> Stale TERMINAL state detected (never had engagement in this session) - treating as INITIAL")
-                MdocEngagementPresenter.Model.Initial(onEvent)
+                log.debug(">>> Stale TERMINAL state detected (never had engagement in this session) - returning Initial with toggle")
+                MdocEngagementPresenter.Model.Initial(
+                    showQr = false,
+                    showQrScanner = showQrScanner,
+                    onQrScanned = onQrScanned,
+                    onStateEvent = onEvent
+                )
             }
 
             // If phase is ENGAGEMENT but there's no active engagement, it's stale state - treat as INITIAL
             sessionState.phase == UiPhase.ENGAGEMENT && activeEngagement == null -> {
-                log.debug(">>> Stale ENGAGEMENT state detected (no active engagement) - treating as INITIAL")
-                MdocEngagementPresenter.Model.Initial(onEvent)
+                log.debug(">>> Stale ENGAGEMENT state detected (no active engagement) - returning Initial with toggle")
+                MdocEngagementPresenter.Model.Initial(
+                    showQr = false,
+                    showQrScanner = showQrScanner,
+                    onQrScanned = onQrScanned,
+                    onStateEvent = onEvent
+                )
             }
 
             sessionState.phase == UiPhase.ENGAGEMENT -> {
-                log.debug(">>> Returning Model: ENGAGEMENT (showQr=${sessionState.qrMode == QrMode.DISPLAY})")
+                log.debug(">>> Returning Model: ENGAGEMENT (showQr=${sessionState.qrMode == QrMode.DISPLAY}, showQrScanner=$showQrScanner)")
                 // Show QR or NFC prompt based on SessionUiState
                 MdocEngagementPresenter.Model.Engagement(
                     qrImage = if (sessionState.qrMode == QrMode.DISPLAY) qrImage else null,
                     engagementEvent = null,
                     showQr = sessionState.qrMode == QrMode.DISPLAY,
+                    showQrScanner = showQrScanner,
+                    onQrScanned = onQrScanned,
                     onStateEvent = onEvent
                 )
             }
@@ -330,14 +440,24 @@ class MdocEngagementPresenterImpl(
 
                     null -> {
                         log.debug(">>> Returning Model: INITIAL (phase=TERMINAL, terminalOutcome=null)")
-                        MdocEngagementPresenter.Model.Initial(onEvent)
+                        MdocEngagementPresenter.Model.Initial(
+                            showQr = false,
+                            showQrScanner = showQrScanner,
+                            onQrScanned = onQrScanned,
+                            onStateEvent = onEvent
+                        )
                     }
                 }
             }
 
             else -> {
                 log.debug(">>> Returning Model: INITIAL (phase=${sessionState.phase})")
-                MdocEngagementPresenter.Model.Initial(onEvent)
+                MdocEngagementPresenter.Model.Initial(
+                    showQr = false,
+                    showQrScanner = showQrScanner,
+                    onQrScanned = onQrScanned,
+                    onStateEvent = onEvent
+                )
             }
         }
 

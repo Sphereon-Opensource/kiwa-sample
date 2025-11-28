@@ -10,6 +10,7 @@ detekt = "1.23.8"
 kottage = "1.8.0"
 multiplatform-settings = "1.3.0"
 qrcode-kotlin = "4.5.0"
+easyqrscan = "0.3.0"
 junit-ktx = "1.3.0"
 rules = "1.7.0"
 collection = "1.5.0"
@@ -40,6 +41,7 @@ multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
 multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
 qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode-kotlin" }
+easyqrscan = { module = "io.github.kalinjul.easyqrscan:scanner", version.ref = "easyqrscan" }
 junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junit-ktx" }
 rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
 collection = { module = "androidx.collection:collection", version.ref = "collection" }

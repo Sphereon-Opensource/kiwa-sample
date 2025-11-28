@@ -72,6 +72,7 @@ kotlin {
             implementation(libs.amz.kotlin.inject.contribute.public)
             implementation(libs.kottage)
             implementation(libs.qrcode.kotlin)
+            implementation(libs.easyqrscan)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)

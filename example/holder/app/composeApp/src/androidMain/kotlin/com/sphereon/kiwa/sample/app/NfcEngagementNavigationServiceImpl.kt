@@ -29,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
@@ -143,30 +144,24 @@ class NfcEngagementNavigationServiceImpl(
         monitoringJob?.cancel()
         monitoringJob = null
 
-        if (userContextManager.isAnonymous()) {
-            log.warn("NFCNAV: Not monitoring engagement events for anonymous session")
-            return
-        }
 
         monitoringJob = serviceScope.launch {
             log.info("NFCNAV: Started monitoring for NFC engagement")
             log.info("NFCNAV: Collecting from engagement manager: ${engagementManager.hashCode()}")
 
-            // Monitor engagement events directly - SessionUiProjector ignores Connecting events!
-            // So we can't rely on sessionState.phase transitions for NFC engagements
-            engagementManager.eventHub.engagementEvents.collect { event ->
-                log.info("NFCNAV: *** Engagement event received: $event")
+            // Monitor NFC engagement directly instead of waiting for Connecting events
+            // In peripheral server mode (NFC handoff), the engagement is created but may not emit
+            // a Connecting event until much later in the flow
+            engagementManager.nfcEngagement.collect { nfcEng ->
+                log.info("NFCNAV: *** NFC engagement changed: ${nfcEng?.id}")
 
-                // When we get a Connecting event for an NFC engagement, navigate to the screen
-                if (event is MdocEngagementEvent.Connecting) {
-                    val nfcEng = engagementManager.nfcEngagement.value
-                    if (nfcEng != null && nfcEng.id.toString() != navigatedEngagementId) {
-                        log.info("NFCNAV: NFC Connecting event for engagement ${nfcEng.id}, navigating to engagement screen")
-                        navigatedEngagementId = nfcEng.id.toString()
-                        handleNfcConnectingEvent()
-                    } else {
-                        log.debug("NFCNAV: Connecting event but no NFC engagement or already navigated")
-                    }
+                if (nfcEng != null && nfcEng.id.toString() != navigatedEngagementId) {
+                    log.info("NFCNAV: NFC engagement created: ${nfcEng.id}, navigating to engagement screen")
+                    navigatedEngagementId = nfcEng.id.toString()
+                    handleNfcConnectingEvent()
+                } else if (nfcEng == null) {
+                    log.debug("NFCNAV: NFC engagement cleared")
+                    navigatedEngagementId = null
                 }
             }
         }
@@ -231,15 +226,19 @@ class NfcEngagementNavigationServiceImpl(
             return
         }
         try {
-            val success = navigateToNfcEngagement()
-            if (success) {
-                log.info("NFCNAV: Successfully navigated to engagement screen for NFC connecting")
-            } else {
-                log.warn("NFCNAV: Failed to navigate to engagement screen")
+            // Ensure navigation happens on Main thread with immediate dispatch
+            withContext(Dispatchers.Main.immediate) {
+                val success = navigateToNfcEngagement()
+                if (success) {
+                    log.info("NFCNAV: Successfully navigated to engagement screen for NFC connecting")
+                    // Yield to allow Compose to recompose with the new backstack state
+                    kotlinx.coroutines.yield()
+                } else {
+                    log.warn("NFCNAV: Failed to navigate to engagement screen")
+                }
             }
-
         } catch (e: Exception) {
-            log.error("NFCNAV: Failed to handle NFC connecting event: ${e.message}")
+            log.error("NFCNAV: Failed to handle NFC connecting event: ${e.message}", exception = e)
         }
     }
 
