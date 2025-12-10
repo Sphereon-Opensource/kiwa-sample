@@ -44,6 +44,7 @@ import com.sphereon.mdoc.data.device.IssuerSignedItem
 import com.sphereon.mdoc.data.eu.Pid
 import com.sphereon.mdoc.data.mso.DigestID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex

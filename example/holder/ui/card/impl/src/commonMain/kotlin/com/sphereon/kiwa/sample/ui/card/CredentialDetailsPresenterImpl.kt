@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import com.sphereon.cbor.CborArray
 import com.sphereon.cbor.CborItem
 import com.sphereon.cbor.CborMap
+import com.sphereon.core.compat.Encoding
+import com.sphereon.core.compat.encodeTo
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.sample.ui.core.backstack.LocalBackstackScope
 import com.sphereon.kiwa.sample.ui.elicense.engagement.qr.MdocEngagementPresenter
@@ -204,7 +206,7 @@ class CredentialDetailsPresenterImpl(
                         value.decodeToString()
                     } catch (e: Exception) {
                         // If UTF-8 decoding fails, show as hex
-                        value.joinToString(" ") { byte -> "%02X".format(byte) }
+                        value.encodeTo(Encoding.HEX)
                     }
                     CredentialDetailsPresenter.VerifiedInfoItem(
                         namespace = namespace,

@@ -37,6 +37,10 @@ kotlin {
         }
     }
 
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
     sourceSets {
 
         androidMain.dependencies {
@@ -100,24 +104,17 @@ ksp {
     arg("software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
 }
 
+fun DependencyHandlerScope.addKspDependencies(configName: String) {
+    val kspConfig = "ksp$configName"
+    addProvider(kspConfig, libs.kotlin.inject.compiler.ksp)
+    add(kspConfig, libs.amz.kotlin.inject.contribute.public)
+    add(kspConfig, libs.amz.kotlin.inject.contribute.code.generators)
+    add(kspConfig, libs.anvil.compiler.ksp)
+}
+
 dependencies {
-    val kspAndroidTarget = "kspAndroid"
-    val kspAndroidDebugTarget = "kspAndroidDebug"
-    val kspAndroidTestTarget = "kspAndroidTest"
-
-
-    addProvider(kspAndroidTarget, libs.kotlin.inject.compiler.ksp)
-    add(kspAndroidTarget, libs.amz.kotlin.inject.contribute.public)
-    add(kspAndroidTarget, libs.amz.kotlin.inject.contribute.code.generators)
-    add(kspAndroidTarget, libs.anvil.compiler.ksp)
-
-    addProvider(kspAndroidDebugTarget, libs.kotlin.inject.compiler.ksp)
-    add(kspAndroidDebugTarget, libs.amz.kotlin.inject.contribute.public)
-    add(kspAndroidDebugTarget, libs.amz.kotlin.inject.contribute.code.generators)
-    add(kspAndroidDebugTarget, libs.anvil.compiler.ksp)
-
-    addProvider(kspAndroidTestTarget, libs.kotlin.inject.compiler.ksp)
-    add(kspAndroidTestTarget, libs.amz.kotlin.inject.contribute.public)
-    add(kspAndroidTestTarget, libs.amz.kotlin.inject.contribute.code.generators)
-    add(kspAndroidTestTarget, libs.anvil.compiler.ksp)
+    val kspConfigurations = listOf("Android", "AndroidDebug", "AndroidTest", "IosArm64", "IosSimulatorArm64", "IosX64")
+    kspConfigurations.forEach { configName ->
+        addKspDependencies(configName)
+    }
 }

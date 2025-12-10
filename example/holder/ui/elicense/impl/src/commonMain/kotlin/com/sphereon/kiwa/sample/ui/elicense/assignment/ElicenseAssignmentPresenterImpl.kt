@@ -113,6 +113,7 @@ class ElicenseAssignmentPresenterImpl(
         try {
             val result = service.assignElicense(pinCode)
             if (result.isOk) {
+                service
                 updateState(AssignmentState.SUCCESS, "", result)
             } else {
                 val error = result.error.message.defaultMessage ?: DEFAULT_ERROR_MESSAGE

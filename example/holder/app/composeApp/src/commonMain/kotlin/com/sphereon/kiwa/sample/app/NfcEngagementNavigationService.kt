@@ -18,11 +18,9 @@
 package com.sphereon.kiwa.sample.app
 
 import com.sphereon.di.session.SessionScope
-import com.sphereon.kiwa.sample.ui.elicense.engagement.qr.MdocEngagementPresenter
 import com.sphereon.mdoc.engagement.EngagementInstance
 import com.sphereon.mdoc.transfer.TransferManager
 import kotlinx.coroutines.flow.StateFlow
-import software.amazon.app.platform.presenter.molecule.MoleculePresenter
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
 interface NfcEngagementNavigationService {

@@ -15,8 +15,12 @@
  *
  */
 
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import co.touchlab.skie.configuration.SealedInterop
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.multiplatform)
@@ -27,7 +31,31 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
     alias(sphereonplug.plugins.io.kotest.io.kotest.gradle.plugin)
     alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
+    id("co.touchlab.skie") version "0.10.8"
 }
+
+skie {
+    features {
+        // Disable enum/sealed class wrapping for Indispensable due to Asn1Element/Asn1Sequence type hierarchy issues
+        group("at.asitplus.signum.indispensable") {
+            coroutinesInterop.set(false)
+            SealedInterop.Enabled(false)
+        }
+        group("at.asitplus.signum") {
+            coroutinesInterop.set(false)
+            SealedInterop.Enabled(false)
+        }
+
+        group("Indispensable") {
+            coroutinesInterop.set(false)
+            SealedInterop.Enabled(false)
+        }
+    }
+}
+
+
+
+val xcFramework = XCFramework("KiwaSampleApp")
 
 kotlin {
     androidTarget {
@@ -37,16 +65,32 @@ kotlin {
         }
     }
 
-   /* listOf(
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
+
+/*
+    listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "KiwaSampleApp"
-            isStatic = true
+            isStatic = false
+            xcFramework.add(this)
+            export(libs.kiwa.holder.sdk.impl)
+            export(libs.kiwa.holder.sdk.public)
+            export(libs.sphereon.core.api.public)
+            export(libs.sphereon.core.api.default)
+            export(libs.sphereon.data.link.http.client)
+            export(libs.sphereon.mdoc.core)
+            export(libs.sphereon.mdoc.datatransfer)
+            transitiveExport = false
         }
-    }*/
+    }
+*/
 
 
     sourceSets {
@@ -54,10 +98,31 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(sphereonlib.androidx.activity.compose)
+            api(libs.amz.app.platform.presenter.molecule.impl)
             // Kiwa SDK Implementation in final Android project only
-            implementation(libs.kiwa.holder.sdk.impl)
+            api(libs.kiwa.holder.sdk.impl)
             // Logger directly from the Sphereon Identity Development Kit as it is not exposed via the Kiwa SDK
-            implementation(libs.sphereon.core.logger.mobile)
+            api(libs.sphereon.core.logger.mobile)
+            api(libs.sphereon.mdoc.transport.nfc)
+            api(libs.sphereon.mdoc.transport.ble)
+            api(libs.sphereon.mdoc.transport.restapi)
+            api(libs.sphereon.mdoc.transport.oid4vp)
+        }
+
+        iosMain.dependencies {
+            // Kiwa SDK Implementation in final Android project only
+            api(libs.kiwa.holder.sdk.impl)
+            // Logger directly from the Sphereon Identity Development Kit as it is not exposed via the Kiwa SDK
+            api(libs.sphereon.core.logger.mobile)
+            api(libs.sphereon.mdoc.transport.nfc)
+            api(libs.sphereon.mdoc.transport.ble)
+            api(libs.sphereon.mdoc.transport.restapi)
+            api(libs.sphereon.mdoc.transport.oid4vp)
+//            implementation(libs.amz.app.platform.renderer.compose.public)
+
+
+//            implementation(libs.amz.app.platform.presenter.molecule.public)
+            api(libs.amz.app.platform.presenter.molecule.impl)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -74,23 +139,26 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.androidx.lifecycle.runtime.compose)
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             // Kiwa SDK interfaces and common code
-            implementation(libs.kiwa.holder.sdk.public)
-            implementation(libs.amz.app.platform.presenter.molecule.public)
-            implementation(libs.amz.app.platform.presenter.molecule.impl)
-            implementation(libs.amz.app.platform.renderer.compose.public)
-            implementation(libs.multiplatform.settings)
-            implementation(libs.multiplatform.settings.coroutines)
-            implementation(libs.collection)
-            implementation(libs.qrcode.kotlin)
+            api(libs.kiwa.holder.sdk.public)
+            api(libs.sphereon.mdoc.datatransfer)
+            api(libs.amz.app.platform.presenter.molecule.public)
+            api(libs.amz.app.platform.renderer.compose.public)
+            api(libs.amz.app.platform.scope.public)
+            api(libs.amz.app.platform.renderer.public)
+            api(libs.amz.app.platform.presenter.public)
+            api(libs.multiplatform.settings)
+            api(libs.multiplatform.settings.coroutines)
+            api(libs.collection)
+            api(libs.qrcode.kotlin)
             // Projects in this repo
-            implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
-            implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCoreImpl)
-            implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
-            implementation(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicenseImpl)
-            implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
-            implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
-            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
-            implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardImpl)
+            api(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
+            api(projects.example.holder.ui.core.kiwaExampleHolderUiCoreImpl)
+            api(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicensePublic)
+            api(projects.example.holder.ui.elicense.kiwaExampleHolderUiElicenseImpl)
+            api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
+            api(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
+            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
+            api(projects.example.holder.ui.card.kiwaExampleHolderUiCardImpl)
         }
     }
 }
@@ -143,7 +211,7 @@ fun DependencyHandlerScope.addKspDependencies(configName: String) {
 }
 
 dependencies {
-    val kspConfigurations = listOf("Android", "AndroidDebug"/*, "IosArm64", "IosX64", "IosSimulatorArm64"*/)
+    val kspConfigurations = listOf("Android", "AndroidDebug", "IosArm64", "IosX64", "IosSimulatorArm64")
     kspConfigurations.forEach { configName ->
         addKspDependencies("ksp$configName")
     }

@@ -41,6 +41,7 @@ import com.sphereon.kiwa.sample.ui.elicense.store.SimpleDocumentEntry
 import com.sphereon.mdoc.data.device.Document
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -92,7 +93,7 @@ class CredentialListPresenterImpl(
         }
 
         val onStateEvent: (CredentialListPresenter.StateEvent) -> Unit = { event ->
-            println("CredentialListPresenter: Received event: ${event.javaClass.simpleName}")
+            println("CredentialListPresenter: Received event: ${event::class.simpleName}")
             when (event) {
                 is CredentialListPresenter.StateEvent.CreateNewCredential -> {
                     scope.launch { pidIssuer.issuePid() }
@@ -162,10 +163,6 @@ class CredentialListPresenterImpl(
                 keyCleanupService.cleanupEphemeralKeys()
                 println("CredentialListPresenter: Successfully cleared all licenses and cleaned up keys")
             }
-        } catch (e: SecurityException) {
-            println("CredentialListPresenter: Security error clearing licenses and keys: ${e.message}")
-        } catch (e: java.io.IOException) {
-            println("CredentialListPresenter: IO error clearing licenses and keys: ${e.message}")
         } catch (e: Exception) {
             println("CredentialListPresenter: Error clearing licenses and keys: ${e.message}")
         }

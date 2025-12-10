@@ -44,6 +44,7 @@ import com.sphereon.kiwa.sample.ui.elicense.issuance.TestPidIssuerImpl.Companion
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleMdocStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext

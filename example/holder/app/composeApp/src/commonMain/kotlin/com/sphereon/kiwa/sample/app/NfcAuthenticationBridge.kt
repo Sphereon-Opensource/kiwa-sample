@@ -17,9 +17,6 @@
 
 package com.sphereon.kiwa.sample.app
 
-import com.sphereon.mdoc.engagement.EngagementInstance
-import com.sphereon.mdoc.transfer.TransferManager
-
 /**
  * App-level bridge service for routing NFC engagement events between contexts.
  *

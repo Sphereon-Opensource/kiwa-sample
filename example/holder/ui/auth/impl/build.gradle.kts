@@ -38,6 +38,9 @@ kotlin {
         }
     }
 
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         androidMain.dependencies {
@@ -120,7 +123,7 @@ fun DependencyHandlerScope.addKspDependencies(configName: String) {
 }
 
 dependencies {
-    val kspConfigurations = listOf(/*"Desktop",*/ "Android", "AndroidDebug", "AndroidTest")
+    val kspConfigurations = listOf("Android", "AndroidDebug", "AndroidTest", "IosArm64", "IosSimulatorArm64", "IosX64")
     kspConfigurations.forEach { configName ->
         addKspDependencies(configName)
     }

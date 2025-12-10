@@ -17,8 +17,6 @@
 package com.sphereon.kiwa.sample.app
 
 import com.sphereon.kiwa.sample.ui.core.backstack.PresenterBackstackScope
-import com.sphereon.mdoc.engagement.EngagementInstance
-import com.sphereon.mdoc.transfer.TransferManager
 import kotlinx.coroutines.flow.StateFlow
 
 /**

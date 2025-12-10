@@ -28,9 +28,6 @@ import com.sphereon.crypto.core.cose.CoseCryptoProviderToCallbackAdapter
 import com.sphereon.crypto.core.cose.CoseKey
 import com.sphereon.crypto.core.cose.CoseKeyType
 import com.sphereon.crypto.core.x509.Certificate
-import com.sphereon.crypto.kms.keystore.memory.registerMemoryKeyStoreSerialization
-import com.sphereon.crypto.kms.keystore.software.registerSoftwareKeyStoreSerialization
-import com.sphereon.crypto.kms.provider.software.registerSoftwareKmsSerialization
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.elicense.sdk.KiwaServices
 import com.sphereon.kiwa.elicense.sdk.auth.model.GetWalletCertificateRequestOptions
@@ -62,9 +59,6 @@ class KiwaWalletServiceImpl(
         DefaultCallbacks.setCoseCryptoDefault(
             CoseCryptoProviderToCallbackAdapter(keyManagerService = services.crypto.keyManagerService)
         )
-        registerMemoryKeyStoreSerialization()
-        registerSoftwareKeyStoreSerialization()
-        registerSoftwareKmsSerialization()
     }
 
     override suspend fun assignElicense(code: String): IssueLicenseResult {

@@ -38,17 +38,9 @@ kotlin {
         }
     }
 
-    /*    listOf(
-            iosX64(),
-            iosArm64(),
-            iosSimulatorArm64()
-        ).forEach { iosTarget ->
-            iosTarget.binaries.framework {
-                baseName = "ComposeApp"
-                isStatic = true
-            }
-        }*/
-
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
 
@@ -64,6 +56,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.kiwa.holder.sdk.public)
+            implementation(libs.sphereon.mdoc.datatransfer)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
         }

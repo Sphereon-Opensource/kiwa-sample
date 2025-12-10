@@ -27,8 +27,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
 import com.sphereon.core.api.SessionLogManager
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.sample.ui.core.backstack.LocalBackstackScope

@@ -38,10 +38,7 @@ import com.sphereon.core.api.conf.DefaultPrincipalMapPropertySource
 import com.sphereon.core.api.conf.DefaultTenantMapPropertySource
 import com.sphereon.crypto.core.DefaultCallbacks
 import com.sphereon.crypto.core.x509.X509VerifyServiceJvmAdapter
-import com.sphereon.crypto.kms.keystore.memory.registerMemoryKeyStoreSerialization
 import com.sphereon.crypto.kms.keystore.software.PlatformDirProvider
-import com.sphereon.crypto.kms.keystore.software.registerSoftwareKeyStoreSerialization
-import com.sphereon.crypto.kms.provider.software.registerSoftwareKmsSerialization
 import com.sphereon.kiwa.sample.ui.auth.AuthSessionService
 import software.amazon.app.platform.renderer.ComposeAndroidRendererFactory
 import java.io.File
@@ -100,10 +97,6 @@ class KiwaSampleApplication : Application() {
         // Set up backward compatibility with MainActivity companion object
         MainActivity.setApplication(this)
 
-        // Register serialization handlers for different keystore types
-        registerMemoryKeyStoreSerialization()
-        registerSoftwareKeyStoreSerialization()
-        registerSoftwareKmsSerialization()
         println("KiwaSampleApplication: Serialization handlers registered")
 
         // Initialize the dependency injection hierarchy
