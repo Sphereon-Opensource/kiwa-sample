@@ -53,9 +53,9 @@ plugins {
     alias(sphereonplug.plugins.dev.petuska.npm.publish.dev.petuska.npm.publish.gradle.plugin) apply false
     alias(sphereonplug.plugins.software.amazon.app.platform) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlinx.atomicfu) apply false
-    alias(sphereonplug.plugins.sphereon.gradle.plugin.conventions) apply false
-    alias(sphereonplug.plugins.sphereon.gradle.plugin.integration.tests) apply false
-    alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication) apply false
+    alias(sphereonplug.plugins.com.sphereon.gradle.plugin.conventions) apply false
+    alias(sphereonplug.plugins.com.sphereon.gradle.plugin.integration.tests) apply false
+    alias(sphereonplug.plugins.com.sphereon.gradle.plugin.project.publication) apply false
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose) apply false
     alias(sphereonplug.plugins.org.jetbrains.compose) apply false
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload) apply false

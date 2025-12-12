@@ -124,6 +124,18 @@ kotlin {
 //            implementation(libs.amz.app.platform.presenter.molecule.public)
             api(libs.amz.app.platform.presenter.molecule.impl)
         }
+
+        iosX64Main.dependencies {
+            api(libs.amz.app.platform.presenter.molecule.impl)
+        }
+
+        iosArm64Main.dependencies {
+            api(libs.amz.app.platform.presenter.molecule.impl)
+        }
+
+        iosSimulatorArm64Main.dependencies {
+            api(libs.amz.app.platform.presenter.molecule.impl)
+        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -141,6 +153,7 @@ kotlin {
             // Kiwa SDK interfaces and common code
             api(libs.kiwa.holder.sdk.public)
             api(libs.sphereon.mdoc.datatransfer)
+
             api(libs.amz.app.platform.presenter.molecule.public)
             api(libs.amz.app.platform.renderer.compose.public)
             api(libs.amz.app.platform.scope.public)

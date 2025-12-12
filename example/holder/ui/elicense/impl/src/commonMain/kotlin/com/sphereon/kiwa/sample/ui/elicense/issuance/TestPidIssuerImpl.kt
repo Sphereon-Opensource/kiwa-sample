@@ -77,7 +77,7 @@ class TestPidIssuerImpl(
     private val initMutex = Mutex()
 
     init {
-        DefaultCallbacks.setCoseCryptoDefault(CoseCryptoProviderToCallbackAdapter(keyManagerService = kms))
+        DefaultCallbacks.setCoseCryptoDefault(CoseCryptoProviderToCallbackAdapter(keyManagerServiceProvider = {kms}))
         /*registerMemoryKeyStoreSerialization()
         registerSoftwareKeyStoreSerialization()
         registerSoftwareKmsSerialization()*/
@@ -476,13 +476,13 @@ class TestPidIssuerImpl(
 
             // Pre-calculate time values once
             val currentTime = Clock.System.now()
-            val signedTime = DateTimeUtils.DEFAULT.dateTime(
+            val signedTime = DateTimeUtils.DEFAULTS.dateTime(
                 epochSeconds = (currentTime.epochSeconds - TIME_OFFSET_PAST_SECONDS).toInt()
             )
-            val validFromTime = DateTimeUtils.DEFAULT.dateTime(
+            val validFromTime = DateTimeUtils.DEFAULTS.dateTime(
                 epochSeconds = (currentTime.epochSeconds - TIME_OFFSET_PAST_SECONDS).toInt()
             )
-            val validUntilTime = DateTimeUtils.DEFAULT.dateTime(
+            val validUntilTime = DateTimeUtils.DEFAULTS.dateTime(
                 epochSeconds = (currentTime.epochSeconds + TIME_OFFSET_FUTURE_SECONDS).toInt()
             )
 

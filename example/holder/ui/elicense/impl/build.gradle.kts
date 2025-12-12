@@ -26,7 +26,7 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose.hot.reload)
-    alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
+    alias(sphereonplug.plugins.com.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
 
@@ -65,6 +65,7 @@ kotlin {
             implementation(libs.sphereon.mdoc.datatransfer)
             implementation(libs.kottage)
             implementation(libs.qrcode.kotlin)
+            implementation(libs.easyqrscan)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthPublic)
             implementation(projects.example.holder.ui.auth.kiwaExampleHolderUiAuthImpl)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)

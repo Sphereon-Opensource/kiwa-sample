@@ -24,7 +24,7 @@ plugins {
     alias(sphereonplug.plugins.com.android.library)
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
-    alias(sphereonplug.plugins.sphereon.gradle.plugin.project.publication)
+    alias(sphereonplug.plugins.com.sphereon.gradle.plugin.project.publication)
     id("maven-publish")
 }
 

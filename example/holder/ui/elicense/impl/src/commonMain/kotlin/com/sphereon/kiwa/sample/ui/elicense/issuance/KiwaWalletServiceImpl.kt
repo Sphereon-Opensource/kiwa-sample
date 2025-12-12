@@ -57,7 +57,7 @@ class KiwaWalletServiceImpl(
 
     init {
         DefaultCallbacks.setCoseCryptoDefault(
-            CoseCryptoProviderToCallbackAdapter(keyManagerService = services.crypto.keyManagerService)
+            CoseCryptoProviderToCallbackAdapter(keyManagerServiceProvider = {services.crypto.keyManagerService})
         )
     }
 

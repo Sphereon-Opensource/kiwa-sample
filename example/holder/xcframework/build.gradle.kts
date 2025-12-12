@@ -15,9 +15,10 @@
  *
  */
 
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+@file:OptIn(KspExperimental::class, ExperimentalKotlinGradlePluginApi::class)
 
 import co.touchlab.skie.configuration.SealedInterop
+import com.google.devtools.ksp.KspExperimental
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -26,6 +27,7 @@ plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.serialization)
     alias(sphereonplug.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(sphereonplug.plugins.org.jetbrains.compose)
+    alias(sphereonplug.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
     id("co.touchlab.skie") version "0.10.8"
 }
 
@@ -65,6 +67,7 @@ kotlin {
             export(libs.sphereon.core.api.public)
             export(libs.sphereon.core.api.default)
             export(libs.sphereon.data.link.http.client)
+            export(libs.sphereon.core.logger.mobile)
             export(libs.sphereon.mdoc.core)
             export(libs.sphereon.mdoc.datatransfer)
             transitiveExport = false
@@ -78,7 +81,7 @@ kotlin {
             api(libs.kiwa.holder.sdk.public)
             // Logger directly from the Sphereon Identity Development Kit as it is not exposed via the Kiwa SDK
             api(libs.sphereon.core.logger.mobile)
-            api(libs.sphereon.mdoc.transport.nfc)
+//            api(libs.sphereon.mdoc.transport.nfc)
             api(libs.sphereon.mdoc.transport.ble)
             api(libs.sphereon.mdoc.transport.restapi)
             api(libs.sphereon.mdoc.transport.oid4vp)
@@ -96,4 +99,25 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
         }
     }
+}
+
+
+ksp {
+    useKsp2.set(false)
+    arg("software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
+}
+
+fun DependencyHandlerScope.addKspDependencies(configName: String) {
+    addProvider(configName, libs.kotlin.inject.compiler.ksp)
+    add(configName, libs.amz.kotlin.inject.contribute.public)
+    add(configName, libs.amz.kotlin.inject.contribute.code.generators)
+    add(configName, libs.anvil.compiler.ksp)
+}
+
+dependencies {
+    // KSP for generating DI components
+    addKspDependencies("ksp")
+    addKspDependencies("kspIosX64")
+    addKspDependencies("kspIosArm64")
+    addKspDependencies("kspIosSimulatorArm64")
 }
