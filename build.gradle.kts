@@ -20,7 +20,7 @@
 
 allprojects {
     group = "com.sphereon.kiwa.sample"
-    version = "0.2.0-SNAPSHOT"
+    version = "0.10.0-SNAPSHOT"
 
     plugins.withType<MavenPublishPlugin> {
         configure<PublishingExtension> {
