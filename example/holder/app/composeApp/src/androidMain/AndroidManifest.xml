@@ -19,6 +19,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
 
 
     <!-- Necessary to perform any Bluetooth classic or BLE communication, such as requesting a
@@ -50,6 +51,13 @@
             tools:targetApi="s"
     />
 
+    <!-- Required to advertise BLE services on Android 12+ -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
+
+    <!-- Required for foreground service on Android 14+ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+
 
     <!-- "If you say the feature is required for your app, then the Google Play store will hide your
     app from users on devices lacking those features. For this reason, you should only set the
@@ -61,6 +69,10 @@
             android:name="android.hardware.bluetooth_le"
             android:required="false"/>
 
+    <!-- Camera for QR code scanning -->
+    <uses-feature
+            android:name="android.hardware.camera"
+            android:required="false"/>
 
     <!-- NFC engagement -->
     <uses-feature
@@ -94,7 +106,8 @@
                 android:name=".MdocNfcService"
                 android:exported="true"
                 android:label="@string/nfc_engagement_service_desc"
-                android:permission="android.permission.BIND_NFC_SERVICE">
+                android:permission="android.permission.BIND_NFC_SERVICE"
+                android:foregroundServiceType="connectedDevice">
             <intent-filter>
                 <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
             </intent-filter>
@@ -104,6 +117,11 @@
                     android:resource="@xml/nfc_engagement_apdu_service"/>
         </service>
 
+        <service
+                android:name=".BleEngagementService"
+                android:enabled="true"
+                android:exported="false"
+                android:foregroundServiceType="connectedDevice"/>
 
     </application>
 

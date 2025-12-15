@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
@@ -77,6 +78,10 @@ class NfcEngagementNavigationServiceImpl(
     @Volatile
     private var localPendingNavigation: NfcEngagementNavigationService.PendingNavigation? = null
 
+    /** Tracks the engagement ID for which we've already triggered navigation to avoid duplicates */
+    @Volatile
+    private var navigatedEngagementId: String? = null
+
     init {
         this.log.info("NFCNAV: NfcEngagementNavigationService initialized")
         this.log.info("NFCNAV DEBUG: NfcEngagementNavigationService created in context: $context")
@@ -118,21 +123,29 @@ class NfcEngagementNavigationServiceImpl(
         log.info("NFCNAV: Starting engagement monitoring")
         log.info("User Context: ${context.context}")
         log.info("Session Context: ${context}")
+        log.info("NFCNAV: Engagement Manager Instance: ${engagementManager.hashCode()}")
         log.info("NFCNAV: ################################")
         monitoringJob?.cancel()
         monitoringJob = null
 
-        if (userContextManager.isAnonymous()) {
-            log.warn("NFCNAV: Not monitoring engagement events for anonymous session")
-            return
-        }
 
         monitoringJob = serviceScope.launch {
-            engagementManager.eventHub.engagementEvents.collect { event ->
-                log.debug("NFCNAV: Engagement event: $event")
-                if (event is MdocEngagementEvent.Connecting) {
-                    log.info("NFCNAV: ${event} event received!!")
-                    handleConnectedEvent()
+            log.info("NFCNAV: Started monitoring for NFC engagement")
+            log.info("NFCNAV: Collecting from engagement manager: ${engagementManager.hashCode()}")
+
+            // Monitor NFC engagement directly instead of waiting for Connecting events
+            // In peripheral server mode (NFC handoff), the engagement is created but may not emit
+            // a Connecting event until much later in the flow
+            engagementManager.nfcEngagement.collect { nfcEng ->
+                log.info("NFCNAV: *** NFC engagement changed: ${nfcEng?.id}")
+
+                if (nfcEng != null && nfcEng.id.toString() != navigatedEngagementId) {
+                    log.info("NFCNAV: NFC engagement created: ${nfcEng.id}, navigating to engagement screen")
+                    navigatedEngagementId = nfcEng.id.toString()
+                    handleNfcConnectingEvent()
+                } else if (nfcEng == null) {
+                    log.debug("NFCNAV: NFC engagement cleared")
+                    navigatedEngagementId = null
                 }
             }
         }
@@ -149,6 +162,7 @@ class NfcEngagementNavigationServiceImpl(
         log.info("NFCNAV: Stopping engagement monitoring")
         monitoringJob?.cancel()
         monitoringJob = null
+        navigatedEngagementId = null // Reset to allow navigation for new engagements
     }
 
     private suspend fun handleConnectedEvent() {
@@ -167,6 +181,48 @@ class NfcEngagementNavigationServiceImpl(
 
         } catch (e: Exception) {
             log.error("NFCNAV: Failed to start transfer manager: ${e.message}")
+        }
+    }
+
+    private suspend fun handleNfcTransferPhase() {
+        val engagement = engagementManager.nfcEngagement.value
+        if (engagement == null) {
+            log.warn("NFCNAV: NFC Transfer phase detected but no current engagement available")
+            return
+        }
+        try {
+            val success = navigateToNfcEngagement()
+            if (success) {
+                log.info("NFCNAV: Successfully navigated to engagement screen for NFC transfer")
+            } else {
+                log.warn("NFCNAV: Failed to navigate to engagement screen")
+            }
+
+        } catch (e: Exception) {
+            log.error("NFCNAV: Failed to handle NFC transfer phase: ${e.message}")
+        }
+    }
+
+    private suspend fun handleNfcConnectingEvent() {
+        val engagement = engagementManager.nfcEngagement.value
+        if (engagement == null) {
+            log.warn("NFCNAV: NFC Connecting event but no current engagement available")
+            return
+        }
+        try {
+            // Ensure navigation happens on Main thread with immediate dispatch
+            withContext(Dispatchers.Main.immediate) {
+                val success = navigateToNfcEngagement()
+                if (success) {
+                    log.info("NFCNAV: Successfully navigated to engagement screen for NFC connecting")
+                    // Yield to allow Compose to recompose with the new backstack state
+                    kotlinx.coroutines.yield()
+                } else {
+                    log.warn("NFCNAV: Failed to navigate to engagement screen")
+                }
+            }
+        } catch (e: Exception) {
+            log.error("NFCNAV: Failed to handle NFC connecting event: ${e.message}", exception = e)
         }
     }
 

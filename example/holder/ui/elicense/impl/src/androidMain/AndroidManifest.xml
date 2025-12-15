@@ -47,6 +47,9 @@
             tools:targetApi="s"
     />
 
+    <!-- Required to advertise BLE services on Android 12+ -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
+
 
     <!-- "If you say the feature is required for your app, then the Google Play store will hide your
     app from users on devices lacking those features. For this reason, you should only set the

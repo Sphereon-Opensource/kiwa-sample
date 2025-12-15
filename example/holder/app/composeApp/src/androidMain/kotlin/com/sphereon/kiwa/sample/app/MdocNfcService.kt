@@ -79,21 +79,32 @@ class MdocNfcService : AbstractMdocNfcService() {
         private val sessionInstance: SessionInstance
             get() = try {
                 println("===============>> Auth session service requested")
-                appServices.userContextManager.activeInstance.value.sessionContextManager.getActive().also {
-                    println("Auth session service: ${it.sessionId}: ${it.sessionContext}")
-                }
+                val activeUserContext = appServices.userContextManager.activeInstance.value
+                println("Active user context: ${activeUserContext.context}")
+                println("Is anonymous: ${activeUserContext.userContextManager.isAnonymous()}")
+                val sessionInstance = activeUserContext.sessionContextManager.getActive()
+                println("Auth session service: ${sessionInstance.sessionId}: ${sessionInstance.sessionContext}")
+                sessionInstance
             } catch (e: Exception) {
+                println("ERROR: Failed to access session instance for NFC service: ${e.message}")
+                e.printStackTrace()
                 throw IllegalStateException("Failed to access session instance for NFC service: ${e.message}", e)
             }
 
     }
+
+
 
     /**
      * The session component required by AbstractMdocNfcService.
      * Lazily initialized and cached to ensure the same instance is used throughout.
      */
     override val sessionComponent: SessionComponent by lazy {
-        sessionInstance.component
+        println("MdocNfcService: sessionComponent accessed - getting from sessionInstance")
+        val component = sessionInstance.component
+        println("MdocNfcService: sessionComponent obtained: $component")
+        println("MdocNfcService: sessionComponent hashCode: ${component.hashCode()}")
+        component
     }
 
 
@@ -169,6 +180,7 @@ class MdocNfcService : AbstractMdocNfcService() {
         app = application as KiwaSampleApplication
         super.onCreate()
         println("MdocNfcService: Service onCreate() - application now available")
+        println("MdocNfcService: Engagement Manager Instance: ${engagementManager.hashCode()}")
 
         // Observe activeUserContextInstance changes and update monitoring accordingly
         appServices.userContextManager.activeInstance
@@ -181,6 +193,8 @@ class MdocNfcService : AbstractMdocNfcService() {
                 } else {
                     log.info("==================================================")
                     log.info("MdocNfcService: NFC allowed - starting monitoring")
+                    log.info("MdocNfcService: Navigation Service Instance: ${navigationService.hashCode()}")
+                    log.info("MdocNfcService: Engagement Manager from NFC Service: ${engagementManager.hashCode()}")
                     navigationService.startMonitoring()
                 }
             }

@@ -56,13 +56,20 @@ interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.In
         }
 
         @Immutable
-        data class Initial(override val onStateEvent: (event: UiStateEvent) -> Unit) : Model
+        data class Initial(
+            val showQr: Boolean = false,
+            val showQrScanner: Boolean = false,
+            val onQrScanned: (String) -> Unit = {},
+            override val onStateEvent: (event: UiStateEvent) -> Unit
+        ) : Model
 
         @Immutable
         data class Engagement(
             val qrImage: ImageBitmap? = null, // If filled, a QR code would be shown
             val engagementEvent: MdocEngagementEvent? = null,
             val showQr: Boolean = false,
+            val showQrScanner: Boolean = false,
+            val onQrScanned: (String) -> Unit = {},
 
             // Callback option from UI. Current presenter is just a test code presenter, combining buttons with QR display etc.
             override val onStateEvent: (event: UiStateEvent) -> Unit
@@ -105,6 +112,7 @@ interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.In
         data object Sharing : UiStateEvent // Processing and sending mdoc device response*/
         data object Stopped : UiStateEvent // Stop existing engagement, moving from Engagement -> Initial
         data object ShowQr : UiStateEvent // Switch UI from NFC icon to QR code
+        data object ShowQrScanner : UiStateEvent // Switch UI to QR scanner mode for reverse engagement
 //        data object Success : UiStateEvent // Successful share - show toast and navigate back
         data object SuccessComplete : UiStateEvent // Success toast completed - navigate back to credential list
     }

@@ -52,6 +52,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,8 +67,11 @@ import androidx.compose.ui.unit.sp
 import com.sphereon.kiwa.sample.ui.card.CredentialCardRenderer
 import com.sphereon.kiwa.sample.ui.card.CredentialCardPresenter
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter
+
 import kotlinx.coroutines.delay
 import me.tatarka.inject.annotations.Inject
+import org.publicvalue.multiplatform.qrcode.CodeType
+import org.publicvalue.multiplatform.qrcode.ScannerWithPermissions
 import software.amazon.app.platform.inject.ContributesRenderer
 import software.amazon.app.platform.renderer.ComposeRenderer
 
@@ -122,9 +129,24 @@ class MdocEngagementRenderer(
                     .fillMaxWidth()
                     .weight(1f, fill = true),
                 contentAlignment = Alignment.Center
-            ) { NfcOrQrContent(showQr = false, qr = null) }
+            ) {
+                NfcOrQrContent(
+                    showQr = model.showQr,
+                    showQrScanner = model.showQrScanner,
+                    qr = null,
+                    fg = fg,
+                    onQrScanned = model.onQrScanned
+                )
+            }
             Spacer(modifier = Modifier.height(SPACING_STANDARD.dp))
-            ButtonsRow(model, fg)
+            ModeToggleRow(
+                showQr = model.showQr,
+                showQrScanner = model.showQrScanner,
+                onShowQr = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.ShowQr) },
+                onShowScanner = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.ShowQrScanner) },
+                onStop = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.Stopped) },
+                fg = fg
+            )
         }
     }
 
@@ -136,9 +158,17 @@ class MdocEngagementRenderer(
                     .fillMaxWidth()
                     .weight(1f, fill = true),
                 contentAlignment = Alignment.Center
-            ) { NfcOrQrContent(showQr = model.showQr, qr = model.qrImage) }
+            ) {
+                NfcOrQrContent(
+                    showQr = model.showQr,
+                    showQrScanner = model.showQrScanner,
+                    qr = model.qrImage,
+                    fg = fg,
+                    onQrScanned = model.onQrScanned
+                )
+            }
 
-            if (!model.showQr) {
+            if (!model.showQr && !model.showQrScanner) {
                 Spacer(Modifier.height(SPACING_SMALL.dp))
                 Text(
                     text = "Please hold your phone to the Reader or use the QR code.",
@@ -148,7 +178,14 @@ class MdocEngagementRenderer(
             }
 
             Spacer(modifier = Modifier.height(SPACING_STANDARD.dp))
-            ButtonsRow(model, fg)
+            ModeToggleRow(
+                showQr = model.showQr,
+                showQrScanner = model.showQrScanner,
+                onShowQr = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.ShowQr) },
+                onShowScanner = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.ShowQrScanner) },
+                onStop = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.Stopped) },
+                fg = fg
+            )
         }
     }
 
@@ -364,71 +401,181 @@ class MdocEngagementRenderer(
     }
 
     @Composable
-    private fun NfcOrQrContent(showQr: Boolean, qr: androidx.compose.ui.graphics.ImageBitmap?) {
-        if (showQr && qr != null) {
-            Box(
+    private fun QrScannerContent(onQrScanned: (String) -> Unit, fg: Color) {
+        var hasScanned by remember { mutableStateOf(false) }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Use ScannerWithPermissions and debounce scan events
+            ScannerWithPermissions(
+                onScanned = { result: String ->
+                    println("🔍 Scanner detected QR: '${result.take(50)}...' (length: ${result.length})")
+                    if (!hasScanned && result.isNotBlank()) {
+                        println("✓ Passing to callback...")
+                        hasScanned = true
+                        onQrScanned(result)
+                    } else {
+                        println("✗ Rejected (hasScanned=$hasScanned, isBlank=${result.isBlank()})")
+                    }
+                    true // Return true to stop scanning
+                },
+                types = listOf(CodeType.QR)
+            )
+            // Overlay instructions (always visible)
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(FILL_FRACTION)
-                    .aspectRatio(ASPECT_RATIO_SQUARE)
-                    .background(Color.White)
-                    .padding(QR_PADDING.dp),
-                contentAlignment = Alignment.Center
+                    .align(Alignment.BottomCenter)
+                    .padding(32.dp)
+                    .background(
+                        color = Color(COLOR_BG).copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    bitmap = qr,
-                    contentDescription = "QR Code",
-                    modifier = Modifier.fillMaxSize()
+                Text(
+                    text = "Scan Reader QR Code",
+                    color = fg,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Position the QR code within the frame",
+                    color = fg.copy(alpha = ALPHA_HIGH),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Must start with mdoc://",
+                    color = Color(COLOR_ACCENT_BLUE),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center
                 )
             }
-        } else {
-            Icon(
-                imageVector = Icons.Outlined.Nfc,
-                contentDescription = "NFC",
-                modifier = Modifier.size(NFC_ICON_SIZE.dp),
-                tint = Color(COLOR_PURPLE)
-            )
         }
     }
 
     @Composable
-    private fun ButtonsRow(model: MdocEngagementPresenter.Model, fg: Color) {
-        when (model) {
-            is MdocEngagementPresenter.Model.Engagement -> {
-                val bgColor = if (model.showQr) {
-                    fg.copy(alpha = BUTTON_ALPHA_LOW)
-                } else {
-                    Color(COLOR_PURPLE_LIGHT)
-                }
-                val textColor = fg
-                val buttonText = if (model.showQr) {
-                    "Stop"
-                } else {
-                    "Show QR code"
-                }
-                val eventToSend = if (model.showQr) {
-                    MdocEngagementPresenter.UiStateEvent.Stopped
-                } else {
-                    MdocEngagementPresenter.UiStateEvent.ShowQr
-                }
-
-                Button(
-                    onClick = { model.onStateEvent(eventToSend) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = bgColor,
-                        contentColor = textColor
-                    ),
-                    modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT.dp)
+    private fun NfcOrQrContent(
+        showQr: Boolean,
+        showQrScanner: Boolean,
+        qr: androidx.compose.ui.graphics.ImageBitmap?,
+        fg: Color,
+        onQrScanned: (String) -> Unit
+    ) {
+        when {
+            showQr && qr != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(FILL_FRACTION)
+                        .aspectRatio(ASPECT_RATIO_SQUARE)
+                        .background(Color.White)
+                        .padding(QR_PADDING.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(buttonText)
+                    Image(
+                        bitmap = qr,
+                        contentDescription = "QR Code",
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
 
+            showQrScanner -> {
+                QrScannerContent(onQrScanned = onQrScanned, fg = fg)
+            }
+
             else -> {
-                Button(
-                    onClick = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.ShowQr) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(COLOR_PURPLE_LIGHT), contentColor = fg),
-                    modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT.dp)
-                ) { Text("Show QR code") }
+                Icon(
+                    imageVector = Icons.Outlined.Nfc,
+                    contentDescription = "NFC",
+                    modifier = Modifier.size(NFC_ICON_SIZE.dp),
+                    tint = Color(COLOR_PURPLE)
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ModeToggleRow(
+        showQr: Boolean,
+        showQrScanner: Boolean,
+        onShowQr: () -> Unit,
+        onShowScanner: () -> Unit,
+        onStop: () -> Unit,
+        fg: Color
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Mode selector with rounded tabs
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(
+                        color = fg.copy(alpha = BUTTON_ALPHA_LOW),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // QR Display Tab
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(
+                            color = if (showQr) Color(COLOR_PURPLE_LIGHT) else Color.Transparent,
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .clickable {
+                            if (!showQr) {
+                                onShowQr()
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Display QR",
+                        color = fg,
+                        fontWeight = if (showQr) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+
+                // QR Scanner Tab
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(
+                            color = if (showQrScanner) Color(COLOR_PURPLE_LIGHT) else Color.Transparent,
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .clickable {
+                            if (!showQrScanner) {
+                                onShowScanner()
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Scan QR",
+                        color = fg,
+                        fontWeight = if (showQrScanner) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+
+            // Stop button below the tabs (always visible for consistent layout)
+            Spacer(modifier = Modifier.height(SPACING_SMALL.dp))
+            Button(
+                onClick = onStop,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = fg.copy(alpha = BUTTON_ALPHA_LOW),
+                    contentColor = fg
+                ),
+                modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT.dp)
+            ) {
+                Text("Stop")
             }
         }
     }
