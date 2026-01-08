@@ -37,6 +37,9 @@ import com.sphereon.kiwa.elicense.sdk.intern.crypto.KiwaCryptoServices.Companion
 import com.sphereon.kiwa.sample.ui.auth.settings.UserPreferences
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleMdocStore
 import com.sphereon.mdoc.data.eu.Pid
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
@@ -61,7 +64,7 @@ class KiwaWalletServiceImpl(
         )
     }
 
-    override suspend fun assignElicense(code: String): IssueLicenseResult {
+    override suspend fun assignElicense(code: String): IssueLicenseResult = withContext(Dispatchers.IO) {
         ensureWalletCertificate(alias = KIWA_WALLET_CERT_ALIAS)
         println("assignElicense: $code and ")
         val assignResult = holder.assignLicense(
@@ -70,12 +73,12 @@ class KiwaWalletServiceImpl(
         println("assignElicense result: $assignResult")
         if (assignResult.isOk) {
             holder.confirmLicense()
-            return getElicenses()
+            return@withContext getElicenses()
         }
-        return assignResult.error.asErrorResult()
+        assignResult.error.asErrorResult()
     }
 
-    override suspend fun getElicenses(): IssueLicenseResult {
+    override suspend fun getElicenses(): IssueLicenseResult = withContext(Dispatchers.IO) {
         val issueLicenseResult = holder.issueLicense()
 
         if (issueLicenseResult.isOk) {
@@ -91,13 +94,13 @@ class KiwaWalletServiceImpl(
                 println(
                     "We should be returning here as we do not get the device key ${deviceKeyInfo.error.message.defaultMessage}"
                 )
-                return deviceKeyInfo.error.asErrorResult()
+                return@withContext deviceKeyInfo.error.asErrorResult()
             }
             // Process new/updated documents - add them to storage if not already present
             processNewDocuments(documents.mobileeIDdocuments, deviceKeyInfo.value)
         }
 
-        return issueLicenseResult
+        issueLicenseResult
     }
 
     private suspend fun processRemovedDocuments(removedDocuments: Array<com.sphereon.mdoc.data.device.Document>) {
@@ -125,11 +128,9 @@ class KiwaWalletServiceImpl(
     ) {
         for (newDocument in newDocuments) {
             // Each license document needs a device key. In the Kiwa implementation it is always the same key
-            if (!storage.hasDocument(newDocument)) {
-                println("Adding new document: ${newDocument.docType}")
+            val hasDoc = storage.hasDocument(newDocument)
+            if (!hasDoc) {
                 storage.storeDocument(mdoc = newDocument, keyInfo = deviceKeyInfo)
-            } else {
-                println("Document already exists, skipping: ${newDocument.docType}")
             }
         }
     }

@@ -39,10 +39,7 @@ import software.amazon.app.platform.presenter.molecule.MoleculePresenter
  * Business logic and UI integration can evolve independently.
  */
 
-interface MdocEngagementPresenter : MoleculePresenter<MdocEngagementPresenter.Input, MdocEngagementPresenter.Model> {
-
-    @Immutable
-    object Input
+interface MdocEngagementPresenter : MoleculePresenter<Unit, MdocEngagementPresenter.Model> {
 
     sealed interface Model : BaseModel, IAppBarConfigModel {
         val onStateEvent: (event: UiStateEvent) -> Unit

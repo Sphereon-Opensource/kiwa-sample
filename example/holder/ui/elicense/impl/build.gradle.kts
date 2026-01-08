@@ -62,7 +62,7 @@ kotlin {
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.amz.app.platform.renderer.compose.public)
             implementation(libs.amz.kotlin.inject.contribute.public)
-            implementation(libs.sphereon.mdoc.datatransfer)
+            implementation(libs.sphereon.mdoc.datatransfer.public)
             implementation(libs.kottage)
             implementation(libs.qrcode.kotlin)
             implementation(libs.easyqrscan)

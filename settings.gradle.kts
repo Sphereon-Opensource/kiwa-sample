@@ -77,10 +77,10 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("sphereonplug") {
-            from("com.sphereon.gradle:gradle-plugin-bom:0.4.0-SNAPSHOT@toml")
+            from("com.sphereon.gradle:gradle-plugin-bom:0.5.0@toml")
         }
         create("sphereonlib") {
-            from("com.sphereon.gradle:library-bom:0.4.0-SNAPSHOT@toml")
+            from("com.sphereon.gradle:library-bom:0.5.0@toml")
         }
 
     }
@@ -161,6 +161,10 @@ librariesRoot
     .maxDepth(6)
     .filter { it.isDirectory }
     .filter { it.name != "generated" && it.name != "build" }
+    // Exclude xcframework - it has its own settings.gradle.kts and should be built separately
+    // to avoid slow XCFramework compilation on every project build.
+    // Build it manually: cd example/holder/xcframework && ../../../gradlew assembleXCFrameworkKiwaSdk
+    .filter { it.name != "xcframework" }
     .filter {
         File(it, "build.gradle.kts").exists()
     }

@@ -18,8 +18,7 @@
 package com.sphereon.kiwa.sample.ui.elicense.store
 
 import com.sphereon.core.api.context.SessionExecution
-import com.sphereon.core.compat.encodeToHex
-import com.sphereon.crypto.core.ManagedKeyInfo
+import com.sphereon.core.api.encodeToHex
 import com.sphereon.crypto.core.ManagedKeyInfoType
 import com.sphereon.crypto.core.generic.hash
 import com.sphereon.di.app.App
@@ -36,6 +35,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
@@ -140,7 +140,14 @@ class SimpleMdocStoreImpl(val app: App, execution: SessionExecution) : SimpleMdo
 
     init {
         // Load initial state
-        scope.launch { documentsState.value = getDocuments() }
+        scope.launch {
+            try {
+                val docs = getDocuments()
+                documentsState.value = docs
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     /**
@@ -152,18 +159,25 @@ class SimpleMdocStoreImpl(val app: App, execution: SessionExecution) : SimpleMdo
      * @param keyInfo The managed key information to associate with the document. This includes details
      *        about the cryptographic key (e.g., alias and providerId) and its associated key management system.
      */
-    override suspend fun storeDocument(mdoc: Document, keyInfo: ManagedKeyInfoType<*>) {
+    override suspend fun storeDocument(mdoc: Document, keyInfo: ManagedKeyInfoType<*>) = withContext(Dispatchers.IO) {
+        val docId = determineId(mdoc)
+        val x509Cert = keyInfo.key.getX509Certificate()
         val documentEntry = SimpleDocumentEntry(
-            id = determineId(mdoc),
+            id = docId,
             document = mdoc,
             providerId = keyInfo.providerId,
             keyAlias = keyInfo.alias,
-            certAlias = keyInfo.key.getX509Certificate()?.let { keyInfo.alias },
+            certAlias = x509Cert?.let { keyInfo.alias },
         )
         log.info("Storing document with id ${documentEntry.id}: $documentEntry")
-        list.add(documentEntry.id, documentEntry.encodeCbor())
-        // Emit refresh
-        documentsState.value = getDocuments()
+        val encodedEntry = documentEntry.encodeCbor()
+        list.add(documentEntry.id, encodedEntry)
+        // Update state directly with the new entry instead of re-reading from database
+        // This ensures the UI sees the update immediately without database transaction timing issues
+        val currentDocs = documentsState.value
+        if (currentDocs.none { it.id == documentEntry.id }) {
+            documentsState.value = currentDocs + documentEntry
+        }
         log.info("Document ${documentEntry.id} stored successfully")
     }
 
@@ -174,7 +188,12 @@ class SimpleMdocStoreImpl(val app: App, execution: SessionExecution) : SimpleMdo
      * @param mdoc The document for which the unique identifier is to be determined.
      * @return A string representing the unique identifier of the document.
      */
-    private fun determineId(mdoc: Document): String = hash(mdoc.encodeCbor()).encodeToHex()
+    private fun determineId(mdoc: Document): String {
+        val cbor = mdoc.encodeCbor()
+        val hashResult = hash(cbor)
+        val result = hashResult.encodeToHex()
+        return result
+    }
 
     /**
      * Retrieves all documents as a list of SimpleDocumentEntry objects.
@@ -216,7 +235,11 @@ class SimpleMdocStoreImpl(val app: App, execution: SessionExecution) : SimpleMdo
      * @param mdoc the `Document` to be checked for existence.
      * @return `true` if the document exists, `false` otherwise.
      */
-    override suspend fun hasDocument(mdoc: Document): Boolean = hasDocumentById(determineId(mdoc))
+    override suspend fun hasDocument(mdoc: Document): Boolean = withContext(Dispatchers.IO) {
+        val id = determineId(mdoc)
+        val result = hasDocumentById(id)
+        result
+    }
 
     /**
      * Removes a document from the storage by its unique identifier.

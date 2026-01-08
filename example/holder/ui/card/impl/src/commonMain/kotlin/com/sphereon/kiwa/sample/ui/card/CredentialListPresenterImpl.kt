@@ -19,6 +19,7 @@ package com.sphereon.kiwa.sample.ui.card
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,14 +70,13 @@ class CredentialListPresenterImpl(
     override fun present(input: Unit): CredentialListPresenter.Model {
         println("CredentialListPresenter present")
 
-        var documentEntries by remember { mutableStateOf<List<SimpleDocumentEntry>>(emptyList()) }
+        // Use collectAsState() instead of LaunchedEffect + collect for proper recomposition on iOS
+        // LaunchedEffect pattern can miss state updates when screens are restored from backstack
+        val documentEntries by storage.documentsFlow.collectAsState()
+
         var pendingDelete by remember { mutableStateOf<Document?>(null) }
         val scope = rememberCoroutineScope()
         val backstack = checkNotNull(LocalBackstackScope.current)
-
-        LaunchedEffect(Unit) {
-            storage.documentsFlow.collect { entries -> documentEntries = entries }
-        }
 
         // Run key cleanup in background after login (when presenter is first created)
         // Use GlobalScope to ensure cleanup continues even when navigating away from this screen
@@ -116,9 +116,8 @@ class CredentialListPresenterImpl(
 
                 is CredentialListPresenter.StateEvent.CancelDelete -> pendingDelete = null
                 is CredentialListPresenter.StateEvent.AttendedPresentation -> {
-                    backstack.push(
-                        MdocEngagementScreenPresenter(mdocEngagementQrPresenter)
-                    )
+                    // Push presenter directly (no wrapper) - matches how CredentialListPresenter works
+                    backstack.push(mdocEngagementQrPresenter)
                 }
 
                 is CredentialListPresenter.StateEvent.GoToHome -> pendingDelete = null
@@ -165,16 +164,6 @@ class CredentialListPresenterImpl(
             }
         } catch (e: Exception) {
             println("CredentialListPresenter: Error clearing licenses and keys: ${e.message}")
-        }
-    }
-
-    private class MdocEngagementScreenPresenter(
-        private val delegate: MdocEngagementPresenter
-    ) : MoleculePresenter<Any, MdocEngagementPresenter.Model> {
-
-        @Composable
-        override fun present(input: Any): MdocEngagementPresenter.Model {
-            return delegate.present(MdocEngagementPresenter.Input)
         }
     }
 

@@ -20,14 +20,13 @@ package com.sphereon.kiwa.sample.ui.elicense.engagement.qr
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.ImageBitmap
-import com.sphereon.core.api.SessionLogManager
+import com.sphereon.core.api.log.SessionLogManager
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.sample.ui.core.backstack.LocalBackstackScope
 import com.sphereon.kiwa.sample.ui.elicense.engagement.consent.MdocInformationRequestPresenter
@@ -40,10 +39,6 @@ import com.sphereon.mdoc.engagement.TerminalOutcome
 import com.sphereon.mdoc.engagement.UiPhase
 import com.sphereon.mdoc.transfer.MapDrivenDocRequestSelector
 import com.sphereon.mdoc.transfer.TransferManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.tatarka.inject.annotations.Inject
@@ -67,9 +62,11 @@ class MdocEngagementPresenterImpl(
     private val log = logManager.withTag("EngagePresenter")
 
     @Composable
-    override fun present(input: MdocEngagementPresenter.Input): MdocEngagementPresenter.Model {
+    override fun present(input: Unit): MdocEngagementPresenter.Model {
         val backstack = checkNotNull(LocalBackstackScope.current)
-        val presenterScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+        // Use rememberCoroutineScope() for proper Compose integration on iOS
+        // This ensures the scope uses the correct dispatcher for the composition
+        val presenterScope = rememberCoroutineScope()
 
         // Handle back button - close all engagements before navigating back
         BackHandlerPresenter(enabled = true) {
@@ -80,23 +77,43 @@ class MdocEngagementPresenterImpl(
             backstack.pop()
         }
 
-        // Collect SessionUiState from the engagement manager's eventHub - this is our source of truth
-        val sessionState by engagementManager.eventHub.sessionState.collectAsState()
+        // State storage for session and engagement
+        var sessionState by remember { mutableStateOf(engagementManager.eventHub.sessionState.value) }
+        var activeEngagement by remember { mutableStateOf(engagementManager.activeEngagement.value) }
 
-        // Collect active engagement from manager - single source of truth
-        val activeEngagement by engagementManager.activeEngagement.collectAsState()
+        // Collect session state - the renderer has a keepalive animation that keeps
+        // CADisplayLink firing, ensuring state changes trigger Molecule recomposition
+        LaunchedEffect(engagementManager) {
+            engagementManager.eventHub.sessionState.collect { state ->
+                sessionState = state
+            }
+        }
 
-        // Track QR scanner mode
-        var showQrScanner by remember { mutableStateOf(false) }
+        // Collect active engagement
+        LaunchedEffect(engagementManager) {
+            engagementManager.activeEngagement.collect { eng ->
+                activeEngagement = eng
+            }
+        }
+
+        // Log the current values on every recomposition for debugging
+        log.debug("!!! RECOMPOSITION - sessionState: phase=${sessionState.phase}, qrMode=${sessionState.qrMode}, activeEngagement: ${activeEngagement?.id}")
+
+        // Track QR scanner mode - use rememberSaveable like BackstackChildPresenter for proper state tracking on iOS
+        var showQrScanner by rememberSaveable { mutableStateOf(false) }
+
+        // Track recomposition count for debugging - use rememberSaveable for consistency
+        var recompositionCount by rememberSaveable { mutableStateOf(0) }
+        recompositionCount++
 
         // Log state on every recomposition to understand state transitions
-        log.debug("=== PRESENTER RECOMPOSITION ===")
+        log.debug("=== PRESENTER RECOMPOSITION #$recompositionCount ===")
         log.debug("Engagement Manager Instance: ${engagementManager.hashCode()}")
         log.debug("SessionUiState: phase=${sessionState.phase}, qrMode=${sessionState.qrMode}, nfcMode=${sessionState.nfcMode}, userInteractionRequired=${sessionState.userInteractionRequired}, terminalOutcome=${sessionState.terminalOutcome}")
         log.debug("ActiveEngagement: ${activeEngagement?.id ?: "null"}")
         log.debug("===============================")
 
-        var isSharing by remember { mutableStateOf(false) }
+        var isSharing by rememberSaveable { mutableStateOf(false) }
 
         // Reset isSharing when we reach terminal state
         DisposableEffect(sessionState.phase) {
@@ -108,12 +125,11 @@ class MdocEngagementPresenterImpl(
             onDispose { }
         }
 
-        // Cleanup on dispose
+        // Cleanup on dispose - note: presenterScope is managed by rememberCoroutineScope()
         DisposableEffect(Unit) {
             onDispose {
-                log.debug("Disposing presenter - cleaning up scope")
+                log.debug("Disposing presenter")
                 isSharing = false
-                presenterScope.cancel()
             }
         }
 
@@ -126,38 +142,45 @@ class MdocEngagementPresenterImpl(
         }
 
         // Generate QR code when qrMode is DISPLAY and we have an engagement
-        val qrImage by produceState<ImageBitmap?>(initialValue = null, sessionState.qrMode, activeEngagement) {
-            log.debug("QR image produceState triggered: qrMode=${sessionState.qrMode}, engagement=${activeEngagement?.id}")
-            val engagement = activeEngagement ?: return@produceState
-            if (sessionState.qrMode != QrMode.DISPLAY) {
-                value = null
-                return@produceState
-            }
+        // Capture engagement in a local val to enable smart cast
+        val currentEngagement = activeEngagement
+        val shouldGenerateQr = sessionState.qrMode == QrMode.DISPLAY && currentEngagement != null
+        log.debug("QR generation check: shouldGenerate=$shouldGenerateQr, qrMode=${sessionState.qrMode}, engagementId=${currentEngagement?.id}")
 
-            runCatching {
-                val uri = engagement.getEngagementUri()
-                log.debug("Generating QR for URI: $uri")
-                val image = qrCodeGenerator.generateQr(uri)
-                value = image
-                log.debug("QR code generated successfully for engagement ${engagement.id}")
-            }.onFailure { e ->
-                log.error("QR generation failed: ${e.message}", exception = e)
-                value = null
+        val qrImage = if (shouldGenerateQr && currentEngagement != null) {
+            // Only compute QR when conditions are met, keyed on engagement ID
+            remember(currentEngagement.id) {
+                log.debug("QR remember block EXECUTING for engagement: ${currentEngagement.id}")
+                runCatching {
+                    val uri = runBlocking { currentEngagement.getEngagementUri() }
+                    log.debug("Generating QR for URI: $uri")
+                    val image = qrCodeGenerator.generateQr(uri)
+                    log.debug("QR code generated successfully for engagement ${currentEngagement.id}")
+                    image
+                }.getOrElse { e ->
+                    log.error("QR generation failed: ${e.message}", exception = e)
+                    null
+                }
             }
+        } else {
+            log.debug("QR generation skipped: qrMode=${sessionState.qrMode}, engagement=${currentEngagement?.id}")
+            null
         }
 
-        // UI Event handlers - delegate to engagement manager
-        val onEvent = remember(presenterScope) {
-            { event: UiStateEvent ->
+        // UI Event handlers - delegate to engagement manager (no remember - same pattern as CredentialListPresenterImpl)
+        val onEvent: (UiStateEvent) -> Unit = { event ->
                 log.debug("Handling UI event: $event")
                 when (event) {
                     UiStateEvent.ShowQr -> {
-                        log.debug("User clicked 'Show QR' - creating QR engagement via manager")
+                        log.debug("User clicked 'Show QR' - switching to Display QR mode")
+                        // Direct state change like CredentialListPresenterImpl pattern
                         showQrScanner = false
+                        log.debug("showQrScanner set to: $showQrScanner")
+                        // Only async work needs to be in a coroutine
                         presenterScope.launch {
                             val engagementResult = engagementManager.createEngagement {
                                 engagement { qr {} }
-                                retrieval { ble { centralClientMode = false; peripheralServerMode = true } }
+                                retrieval { ble { centralClientMode = true; peripheralServerMode = false } }
                             }
                             engagementResult.onSuccess { engagement ->
                                 engagement.start()
@@ -169,16 +192,16 @@ class MdocEngagementPresenterImpl(
                     }
 
                     UiStateEvent.ShowQrScanner -> {
-                        log.debug("User clicked 'Scan QR' - enabling QR scanner mode")
+                        log.debug("User clicked 'Scan QR' - switching to Scan QR mode")
+                        // Direct state change like CredentialListPresenterImpl does for pendingDelete
                         showQrScanner = true
-                        // Don't create engagement yet - wait for QR scan
-                        // The scanner will trigger onQrScanned when a code is detected
+                        log.debug("showQrScanner set to: $showQrScanner")
                     }
 
                     UiStateEvent.Stopped -> {
-                        showQrScanner = false
                         log.debug("Stopped event - closing all engagements and navigating back")
                         presenterScope.launch {
+                            showQrScanner = false
                             engagementManager.closeAll()
                             backstack.pop()
                         }
@@ -192,15 +215,11 @@ class MdocEngagementPresenterImpl(
                             backstack.pop()
                         }
                     }
-
-                }
-                Unit
             }
         }
 
-        // Handle QR code scanned for reverse engagement
-        val onQrScanned = remember(presenterScope) {
-            { scannedData: String ->
+        // Handle QR code scanned for reverse engagement (no remember - same pattern as CredentialListPresenterImpl)
+        val onQrScanned: (String) -> Unit = { scannedData ->
                 log.info("📷 QR SCANNED! Length: ${scannedData.length}, First 30 chars: '${scannedData.take(30)}'")
                 log.debug("Full scanned data: $scannedData")
                 when {
@@ -280,12 +299,9 @@ class MdocEngagementPresenterImpl(
                         log.warn("⚠️ Invalid QR code: Expected 'mdoc://', 'mdoc:', or 'mdoc-openid4vp://' - got prefix: ${scannedData.take(20)}")
                     }
                 }
-                Unit
-            }
         }
 
-        val onContinue = remember(presenterScope) {
-            { selector: MapDrivenDocRequestSelector ->
+        val onContinue: (MapDrivenDocRequestSelector) -> Unit = { selector ->
                 log.debug("Document selection confirmed, starting sharing")
                 isSharing = true
 
@@ -328,8 +344,6 @@ class MdocEngagementPresenterImpl(
                         isSharing = false
                     }
                 }
-                Unit
-            }
         }
 
         // Track if we've ever had an active engagement in this presenter session
@@ -338,13 +352,18 @@ class MdocEngagementPresenterImpl(
             hasHadEngagement.value = true
         }
 
+        // Debug: Log qrImage state on every recomposition
+        log.debug("QR Image state: qrImage=${if (qrImage != null) "EXISTS (${qrImage.hashCode()})" else "NULL"}")
+
         // Build model based purely on SessionUiState - it's the source of truth
         // Special case: If TERMINAL state but no active engagement AND we never had an engagement,
         // this is stale state from a previous session - treat as INITIAL with toggle UI
         val model = when {
             sessionState.phase == UiPhase.TERMINAL && activeEngagement == null && !hasHadEngagement.value -> {
-                log.debug(">>> Stale TERMINAL state detected (never had engagement in this session) - returning Initial with toggle")
-                MdocEngagementPresenter.Model.Initial(
+                log.debug(">>> Stale TERMINAL state detected (never had engagement in this session) - returning Engagement with toggle")
+                MdocEngagementPresenter.Model.Engagement(
+                    qrImage = null,
+                    engagementEvent = null,
                     showQr = false,
                     showQrScanner = showQrScanner,
                     onQrScanned = onQrScanned,
@@ -352,10 +371,12 @@ class MdocEngagementPresenterImpl(
                 )
             }
 
-            // If phase is ENGAGEMENT but there's no active engagement, it's stale state - treat as INITIAL
+            // If phase is ENGAGEMENT but there's no active engagement, it's stale state - treat as ready for engagement
             sessionState.phase == UiPhase.ENGAGEMENT && activeEngagement == null -> {
-                log.debug(">>> Stale ENGAGEMENT state detected (no active engagement) - returning Initial with toggle")
-                MdocEngagementPresenter.Model.Initial(
+                log.debug(">>> Stale ENGAGEMENT state detected (no active engagement) - returning Engagement with toggle")
+                MdocEngagementPresenter.Model.Engagement(
+                    qrImage = null,
+                    engagementEvent = null,
                     showQr = false,
                     showQrScanner = showQrScanner,
                     onQrScanned = onQrScanned,
@@ -364,12 +385,15 @@ class MdocEngagementPresenterImpl(
             }
 
             sessionState.phase == UiPhase.ENGAGEMENT -> {
-                log.debug(">>> Returning Model: ENGAGEMENT (showQr=${sessionState.qrMode == QrMode.DISPLAY}, showQrScanner=$showQrScanner)")
-                // Show QR or NFC prompt based on SessionUiState
+                val shouldShowQr = sessionState.qrMode == QrMode.DISPLAY && !showQrScanner
+                val qrForModel = if (shouldShowQr) qrImage else null
+                log.debug(">>> Returning Model: ENGAGEMENT (showQr=$shouldShowQr, showQrScanner=$showQrScanner, qrForModel=${if (qrForModel != null) "EXISTS" else "NULL"})")
+                // Always return Engagement model to avoid slide animations
+                // When showQrScanner=true, prioritize scanner UI over Display QR
                 MdocEngagementPresenter.Model.Engagement(
-                    qrImage = if (sessionState.qrMode == QrMode.DISPLAY) qrImage else null,
+                    qrImage = qrForModel,
                     engagementEvent = null,
-                    showQr = sessionState.qrMode == QrMode.DISPLAY,
+                    showQr = shouldShowQr,
                     showQrScanner = showQrScanner,
                     onQrScanned = onQrScanned,
                     onStateEvent = onEvent
@@ -437,8 +461,10 @@ class MdocEngagementPresenterImpl(
                     }
 
                     null -> {
-                        log.debug(">>> Returning Model: INITIAL (phase=TERMINAL, terminalOutcome=null)")
-                        MdocEngagementPresenter.Model.Initial(
+                        log.debug(">>> Returning Model: ENGAGEMENT (phase=TERMINAL, terminalOutcome=null)")
+                        MdocEngagementPresenter.Model.Engagement(
+                            qrImage = null,
+                            engagementEvent = null,
                             showQr = false,
                             showQrScanner = showQrScanner,
                             onQrScanned = onQrScanned,
@@ -449,8 +475,10 @@ class MdocEngagementPresenterImpl(
             }
 
             else -> {
-                log.debug(">>> Returning Model: INITIAL (phase=${sessionState.phase})")
-                MdocEngagementPresenter.Model.Initial(
+                log.debug(">>> Returning Model: ENGAGEMENT (phase=${sessionState.phase})")
+                MdocEngagementPresenter.Model.Engagement(
+                    qrImage = null,
+                    engagementEvent = null,
                     showQr = false,
                     showQrScanner = showQrScanner,
                     onQrScanned = onQrScanned,
@@ -464,10 +492,10 @@ class MdocEngagementPresenterImpl(
 
     @Inject
     class Factory(
-        private val factory: (MoleculePresenter<MdocEngagementPresenter.Input, *>) -> MdocEngagementPresenterImpl
+        private val factory: (MoleculePresenter<Unit, *>) -> MdocEngagementPresenterImpl
     ) {
         fun createTestAppTemplatePresenter(
-            presenter: MoleculePresenter<MdocEngagementPresenter.Input, *>,
+            presenter: MoleculePresenter<Unit, *>,
         ): MdocEngagementPresenterImpl = factory(presenter)
     }
 

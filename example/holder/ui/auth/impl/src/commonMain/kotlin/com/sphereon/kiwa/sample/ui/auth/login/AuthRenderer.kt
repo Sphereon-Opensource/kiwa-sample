@@ -18,6 +18,8 @@
 package com.sphereon.kiwa.sample.ui.auth.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,8 +28,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +47,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentType
@@ -342,9 +348,20 @@ private fun CreateAccountContent(
     accent: Color,
 ) {
     val formState = rememberCreateAccountFormState(model)
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val scrollState = rememberScrollState()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .verticalScroll(scrollState)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                keyboardController?.hide()
+            },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -356,6 +373,7 @@ private fun CreateAccountContent(
         CreateAccountButtons(
             formValid = formState.isFormValid,
             onContinueClick = {
+                keyboardController?.hide()
                 if (formState.validateAll()) {
                     model.onEvent(
                         AuthPresenter.Event.OnCreateAccountClicked(
@@ -367,9 +385,15 @@ private fun CreateAccountContent(
                     )
                 }
             },
-            onBackClick = { model.onEvent(AuthPresenter.Event.OnBackFromCreate) },
+            onBackClick = {
+                keyboardController?.hide()
+                model.onEvent(AuthPresenter.Event.OnBackFromCreate)
+            },
             fg = fg
         )
+
+        // Add bottom padding to ensure buttons are visible when keyboard is shown
+        Spacer(Modifier.height(UiConstants.PADDING_LARGE.dp))
     }
 }
 

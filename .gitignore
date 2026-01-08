@@ -17,3 +17,4 @@ xcuserdata
 
 # Detekt reports
 **/build/reports/detekt/
+/CLAUDE.md

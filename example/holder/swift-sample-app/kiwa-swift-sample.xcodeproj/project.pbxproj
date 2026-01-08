@@ -1,0 +1,612 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1F850D5B2EE2487800ED5739 /* kiwa-swift-sample.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 1F850D5A2EE2487800ED5739 /* kiwa-swift-sample.entitlements */; };
+		1FD790012EEB58EE00B47867 /* KiwaSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FD78FFD2EEB543100B47867 /* KiwaSdk.xcframework */; };
+		1FD790022EEB58EE00B47867 /* KiwaSdk.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1FD78FFD2EEB543100B47867 /* KiwaSdk.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1F67A1232EDE388600136A22 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F67A10A2EDE388500136A22 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1F67A1112EDE388500136A22;
+			remoteInfo = "kiwa-swift-sample";
+		};
+		1F67A12D2EDE388600136A22 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F67A10A2EDE388500136A22 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1F67A1112EDE388500136A22;
+			remoteInfo = "kiwa-swift-sample";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1FD790032EEB58EE00B47867 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1FD790022EEB58EE00B47867 /* KiwaSdk.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1F67A1122EDE388500136A22 /* kiwa-swift-sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kiwa-swift-sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F67A1222EDE388600136A22 /* kiwa-swift-sampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kiwa-swift-sampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F67A12C2EDE388600136A22 /* kiwa-swift-sampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kiwa-swift-sampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F67A1402EDE516100136A22 /* KiwaElicenseSDK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = KiwaElicenseSDK.xcframework; path = ../../kiwa/sdks/holder/sdk/impl/build/XCFrameworks/debug/KiwaElicenseSDK.xcframework; sourceTree = "<group>"; };
+		1F67A1442EDE651100136A22 /* KiwaSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = KiwaSdk.xcframework; sourceTree = "<group>"; };
+		1F850D5A2EE2487800ED5739 /* kiwa-swift-sample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = kiwa-swift-sample.entitlements; sourceTree = "<group>"; };
+		1FD78FFD2EEB543100B47867 /* KiwaSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = KiwaSdk.xcframework; path = "../xcframework/build/XCFrameworks/release/KiwaSdk.xcframework"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1F67A1142EDE388500136A22 /* kiwa-swift-sample */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = kiwa-swift-sample;
+			sourceTree = "<group>";
+		};
+		1F67A1252EDE388600136A22 /* kiwa-swift-sampleTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = kiwa-swift-sampleTests;
+			sourceTree = "<group>";
+		};
+		1F67A12F2EDE388600136A22 /* kiwa-swift-sampleUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = kiwa-swift-sampleUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1F67A10F2EDE388500136A22 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1FD790012EEB58EE00B47867 /* KiwaSdk.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F67A11F2EDE388600136A22 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F67A1292EDE388600136A22 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1F67A1092EDE388500136A22 = {
+			isa = PBXGroup;
+			children = (
+				1F850D5A2EE2487800ED5739 /* kiwa-swift-sample.entitlements */,
+				1F67A1142EDE388500136A22 /* kiwa-swift-sample */,
+				1F67A1252EDE388600136A22 /* kiwa-swift-sampleTests */,
+				1F67A12F2EDE388600136A22 /* kiwa-swift-sampleUITests */,
+				1F67A13F2EDE516100136A22 /* Frameworks */,
+				1F67A1132EDE388500136A22 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1F67A1132EDE388500136A22 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1F67A1122EDE388500136A22 /* kiwa-swift-sample.app */,
+				1F67A1222EDE388600136A22 /* kiwa-swift-sampleTests.xctest */,
+				1F67A12C2EDE388600136A22 /* kiwa-swift-sampleUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1F67A13F2EDE516100136A22 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1FD78FFD2EEB543100B47867 /* KiwaSdk.xcframework */,
+				1F67A1452EDE651100136A22 /* debug */,
+				1F67A1402EDE516100136A22 /* KiwaElicenseSDK.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		1F67A1452EDE651100136A22 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				1F67A1442EDE651100136A22 /* KiwaSdk.xcframework */,
+			);
+			name = debug;
+			path = ../../kiwa/sdks/holder/sdk/all/build/XCFrameworks/debug;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1F67A1112EDE388500136A22 /* kiwa-swift-sample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F67A1362EDE388600136A22 /* Build configuration list for PBXNativeTarget "kiwa-swift-sample" */;
+			buildPhases = (
+				1F67A10E2EDE388500136A22 /* Sources */,
+				1F67A10F2EDE388500136A22 /* Frameworks */,
+				1F67A1102EDE388500136A22 /* Resources */,
+				1FD790032EEB58EE00B47867 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1F67A1142EDE388500136A22 /* kiwa-swift-sample */,
+			);
+			name = "kiwa-swift-sample";
+			packageProductDependencies = (
+			);
+			productName = "kiwa-swift-sample";
+			productReference = 1F67A1122EDE388500136A22 /* kiwa-swift-sample.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1F67A1212EDE388600136A22 /* kiwa-swift-sampleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F67A1392EDE388600136A22 /* Build configuration list for PBXNativeTarget "kiwa-swift-sampleTests" */;
+			buildPhases = (
+				1F67A11E2EDE388600136A22 /* Sources */,
+				1F67A11F2EDE388600136A22 /* Frameworks */,
+				1F67A1202EDE388600136A22 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1F67A1242EDE388600136A22 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1F67A1252EDE388600136A22 /* kiwa-swift-sampleTests */,
+			);
+			name = "kiwa-swift-sampleTests";
+			packageProductDependencies = (
+			);
+			productName = "kiwa-swift-sampleTests";
+			productReference = 1F67A1222EDE388600136A22 /* kiwa-swift-sampleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		1F67A12B2EDE388600136A22 /* kiwa-swift-sampleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F67A13C2EDE388600136A22 /* Build configuration list for PBXNativeTarget "kiwa-swift-sampleUITests" */;
+			buildPhases = (
+				1F67A1282EDE388600136A22 /* Sources */,
+				1F67A1292EDE388600136A22 /* Frameworks */,
+				1F67A12A2EDE388600136A22 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1F67A12E2EDE388600136A22 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1F67A12F2EDE388600136A22 /* kiwa-swift-sampleUITests */,
+			);
+			name = "kiwa-swift-sampleUITests";
+			packageProductDependencies = (
+			);
+			productName = "kiwa-swift-sampleUITests";
+			productReference = 1F67A12C2EDE388600136A22 /* kiwa-swift-sampleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1F67A10A2EDE388500136A22 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					1F67A1112EDE388500136A22 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					1F67A1212EDE388600136A22 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 1F67A1112EDE388500136A22;
+					};
+					1F67A12B2EDE388600136A22 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 1F67A1112EDE388500136A22;
+					};
+				};
+			};
+			buildConfigurationList = 1F67A10D2EDE388500136A22 /* Build configuration list for PBXProject "kiwa-swift-sample" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1F67A1092EDE388500136A22;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1F67A1132EDE388500136A22 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1F67A1112EDE388500136A22 /* kiwa-swift-sample */,
+				1F67A1212EDE388600136A22 /* kiwa-swift-sampleTests */,
+				1F67A12B2EDE388600136A22 /* kiwa-swift-sampleUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1F67A1102EDE388500136A22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1F850D5B2EE2487800ED5739 /* test.entitlements in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F67A1202EDE388600136A22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F67A12A2EDE388600136A22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1F67A10E2EDE388500136A22 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F67A11E2EDE388600136A22 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F67A1282EDE388600136A22 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1F67A1242EDE388600136A22 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1F67A1112EDE388500136A22 /* kiwa-swift-sample */;
+			targetProxy = 1F67A1232EDE388600136A22 /* PBXContainerItemProxy */;
+		};
+		1F67A12E2EDE388600136A22 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1F67A1112EDE388500136A22 /* kiwa-swift-sample */;
+			targetProxy = 1F67A12D2EDE388600136A22 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1F67A1342EDE388600136A22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1F67A1352EDE388600136A22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1F67A1372EDE388600136A22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "kiwa-swift-sample.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"kiwa-swift-sample/Preview Content\"";
+				DEVELOPMENT_TEAM = DC49UZQT6X;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sphereon.kiwa-swift-sample";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1F67A1382EDE388600136A22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "kiwa-swift-sample.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"kiwa-swift-sample/Preview Content\"";
+				DEVELOPMENT_TEAM = DC49UZQT6X;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sphereon.kiwa-swift-sample";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1F67A13A2EDE388600136A22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DC49UZQT6X;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sphereon.kiwa-swift-sampleTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kiwa-swift-sample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kiwa-swift-sample";
+			};
+			name = Debug;
+		};
+		1F67A13B2EDE388600136A22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DC49UZQT6X;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sphereon.kiwa-swift-sampleTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kiwa-swift-sample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kiwa-swift-sample";
+			};
+			name = Release;
+		};
+		1F67A13D2EDE388600136A22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DC49UZQT6X;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sphereon.kiwa-swift-sampleUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "kiwa-swift-sample";
+			};
+			name = Debug;
+		};
+		1F67A13E2EDE388600136A22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DC49UZQT6X;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sphereon.kiwa-swift-sampleUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "kiwa-swift-sample";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1F67A10D2EDE388500136A22 /* Build configuration list for PBXProject "kiwa-swift-sample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F67A1342EDE388600136A22 /* Debug */,
+				1F67A1352EDE388600136A22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1F67A1362EDE388600136A22 /* Build configuration list for PBXNativeTarget "kiwa-swift-sample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F67A1372EDE388600136A22 /* Debug */,
+				1F67A1382EDE388600136A22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1F67A1392EDE388600136A22 /* Build configuration list for PBXNativeTarget "kiwa-swift-sampleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F67A13A2EDE388600136A22 /* Debug */,
+				1F67A13B2EDE388600136A22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1F67A13C2EDE388600136A22 /* Build configuration list for PBXNativeTarget "kiwa-swift-sampleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F67A13D2EDE388600136A22 /* Debug */,
+				1F67A13E2EDE388600136A22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1F67A10A2EDE388500136A22 /* Project object */;
+}

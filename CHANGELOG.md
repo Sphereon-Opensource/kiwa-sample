@@ -1,9 +1,13 @@
 # Changelog
 
-## 0.2.0 — Not yet release
+## 0.13.0 — 20260108
 
-- Based on Kiwa SDK 0.8.0 and Identity Development Kit 0.11.0
+- Version bump to 0.13.0 of the Kiwa SDK to allign with IDK 0.13.0
+- Based on Kiwa SDK 0.13.0 and Identity Development Kit 0.13.0
 - minSdk to 30, because of external library dependencies
+- Add sample Swift app, next to the ios and Android compose app
+- XCFramework building added
+- Cocoapods support
 - Removed direct deepencies on the Sphereon Identity Development Kit, as they are exposed via the Kiwa SDK
 
 ## 0.1.1 — Internal release

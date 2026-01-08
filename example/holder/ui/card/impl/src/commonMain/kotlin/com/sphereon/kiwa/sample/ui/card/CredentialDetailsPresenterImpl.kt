@@ -25,15 +25,14 @@ import androidx.compose.runtime.setValue
 import com.sphereon.cbor.CborArray
 import com.sphereon.cbor.CborItem
 import com.sphereon.cbor.CborMap
-import com.sphereon.core.compat.Encoding
-import com.sphereon.core.compat.encodeTo
+import com.sphereon.core.api.Encoding
+import com.sphereon.core.api.encodeTo
 import com.sphereon.di.session.SessionScope
 import com.sphereon.kiwa.sample.ui.core.backstack.LocalBackstackScope
 import com.sphereon.kiwa.sample.ui.elicense.engagement.qr.MdocEngagementPresenter
 import com.sphereon.kiwa.sample.ui.elicense.store.SimpleMdocStore
 import kotlinx.coroutines.runBlocking
 import me.tatarka.inject.annotations.Inject
-import software.amazon.app.platform.presenter.molecule.MoleculePresenter
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 
 @Inject
@@ -70,9 +69,8 @@ class CredentialDetailsPresenterImpl(
                 }
 
                 is CredentialDetailsPresenter.Event.AttendedPresentation -> {
-                    backstack.push(
-                        MdocEngagementScreenPresenter(mdocEngagementQrPresenter)
-                    )
+                    // Push presenter directly (no wrapper) - matches how CredentialListPresenter works
+                    backstack.push(mdocEngagementQrPresenter)
                 }
 
                 is CredentialDetailsPresenter.Event.ViewImage -> {
@@ -298,16 +296,6 @@ class CredentialDetailsPresenterImpl(
             bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte() -> true
 
             else -> false
-        }
-    }
-
-    private class MdocEngagementScreenPresenter(
-        private val delegate: MdocEngagementPresenter
-    ) : MoleculePresenter<Any, MdocEngagementPresenter.Model> {
-
-        @Composable
-        override fun present(input: Any): MdocEngagementPresenter.Model {
-            return delegate.present(MdocEngagementPresenter.Input)
         }
     }
 }

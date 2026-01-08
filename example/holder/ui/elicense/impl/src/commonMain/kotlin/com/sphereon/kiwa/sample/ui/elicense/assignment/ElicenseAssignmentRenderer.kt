@@ -17,6 +17,8 @@
 
 package com.sphereon.kiwa.sample.ui.elicense.assignment
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,9 +33,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -69,37 +68,70 @@ class ElicenseAssignmentRenderer : ComposeRenderer<ElicenseAssignmentPresenter.M
 
     @Composable
     override fun Compose(model: ElicenseAssignmentPresenter.Model) {
+        // Determine the state key for crossfade transitions.
+        // Using Crossfade instead of key() allows for smoother transitions that don't
+        // immediately tear down the composable tree. This prevents iOS Compose crashes
+        // where LayoutNode disposal during render frames causes DepthSortedSet issues.
+        val stateKey = when (model) {
+            is ElicenseAssignmentPresenter.Model.EnteringPin -> "entering_pin"
+            is ElicenseAssignmentPresenter.Model.AssigningLicense -> "assigning"
+            is ElicenseAssignmentPresenter.Model.AssignmentSuccess -> "success"
+            is ElicenseAssignmentPresenter.Model.AssignmentError -> "error"
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(AppColors.Screen.background)
         ) {
-            when (model) {
-                is ElicenseAssignmentPresenter.Model.EnteringPin -> {
-                    PinEntryScreen(
-                        onPinComplete = model.onPinComplete,
-                        onCancel = { model.onEvent(ElicenseAssignmentPresenter.Event.OnCancel) }
-                    )
-                }
+            // Use Crossfade for smooth transitions between states.
+            // This keeps both old and new composables briefly in memory during transition,
+            // allowing for gradual disposal that doesn't conflict with the render cycle.
+            // The 200ms animation duration gives enough time for proper cleanup.
+            Crossfade(
+                targetState = stateKey,
+                animationSpec = tween(durationMillis = CROSSFADE_DURATION_MS),
+                label = "assignment_state_transition"
+            ) { currentState ->
+                when (currentState) {
+                    "entering_pin" -> {
+                        val pinModel = model as? ElicenseAssignmentPresenter.Model.EnteringPin
+                        if (pinModel != null) {
+                            PinEntryScreen(
+                                onPinComplete = pinModel.onPinComplete,
+                                onCancel = { pinModel.onEvent(ElicenseAssignmentPresenter.Event.OnCancel) }
+                            )
+                        }
+                    }
 
-                is ElicenseAssignmentPresenter.Model.AssigningLicense -> {
-                    AssigningScreen(
-                        pinCode = model.pinCode,
-                        onCancel = { model.onEvent(ElicenseAssignmentPresenter.Event.OnCancel) }
-                    )
-                }
+                    "assigning" -> {
+                        val assigningModel = model as? ElicenseAssignmentPresenter.Model.AssigningLicense
+                        if (assigningModel != null) {
+                            AssigningScreen(
+                                pinCode = assigningModel.pinCode,
+                                onCancel = { assigningModel.onEvent(ElicenseAssignmentPresenter.Event.OnCancel) }
+                            )
+                        }
+                    }
 
-                is ElicenseAssignmentPresenter.Model.AssignmentSuccess -> {
-                    SuccessScreen(
-                        onEvent = model.onEvent
-                    )
-                }
+                    "success" -> {
+                        val successModel = model as? ElicenseAssignmentPresenter.Model.AssignmentSuccess
+                        if (successModel != null) {
+                            SuccessScreen(
+                                onEvent = successModel.onEvent
+                            )
+                        }
+                    }
 
-                is ElicenseAssignmentPresenter.Model.AssignmentError -> {
-                    ErrorScreen(
-                        error = model.error,
-                        onEvent = model.onEvent
-                    )
+                    "error" -> {
+                        val errorModel = model as? ElicenseAssignmentPresenter.Model.AssignmentError
+                        if (errorModel != null) {
+                            ErrorScreen(
+                                error = errorModel.error,
+                                onEvent = errorModel.onEvent
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -224,22 +256,37 @@ class ElicenseAssignmentRenderer : ComposeRenderer<ElicenseAssignmentPresenter.M
 
     @Composable
     private fun NumericKeypad(pin: String, onPinChanged: (String) -> Unit) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(KEYPAD_COLUMNS),
+        // Use regular Column/Row layout instead of LazyVerticalGrid to avoid
+        // iOS Compose crashes during state transitions. LazyVerticalGrid's internal
+        // DepthSortedSet can fail when layout nodes are removed during render frames.
+        // Since we only have 12 buttons, lazy loading provides no benefit anyway.
+        Column(
             verticalArrangement = Arrangement.spacedBy(KEYPAD_SPACING.dp),
-            horizontalArrangement = Arrangement.spacedBy(KEYPAD_SPACING.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(KEYPAD_WIDTH.dp)
         ) {
-            items((1..KEYPAD_DIGIT_MAX).toList()) { number ->
-                KeypadNumberButton(number, pin, onPinChanged)
+            // Row 1: 1, 2, 3
+            Row(horizontalArrangement = Arrangement.spacedBy(KEYPAD_SPACING.dp)) {
+                KeypadNumberButton(1, pin, onPinChanged)
+                KeypadNumberButton(2, pin, onPinChanged)
+                KeypadNumberButton(3, pin, onPinChanged)
             }
-            item {
+            // Row 2: 4, 5, 6
+            Row(horizontalArrangement = Arrangement.spacedBy(KEYPAD_SPACING.dp)) {
+                KeypadNumberButton(4, pin, onPinChanged)
+                KeypadNumberButton(5, pin, onPinChanged)
+                KeypadNumberButton(6, pin, onPinChanged)
+            }
+            // Row 3: 7, 8, 9
+            Row(horizontalArrangement = Arrangement.spacedBy(KEYPAD_SPACING.dp)) {
+                KeypadNumberButton(7, pin, onPinChanged)
+                KeypadNumberButton(8, pin, onPinChanged)
+                KeypadNumberButton(9, pin, onPinChanged)
+            }
+            // Row 4: Clear, 0, Backspace
+            Row(horizontalArrangement = Arrangement.spacedBy(KEYPAD_SPACING.dp)) {
                 KeypadClearButton { onPinChanged("") }
-            }
-            item {
                 KeypadNumberButton(0, pin, onPinChanged)
-            }
-            item {
                 KeypadBackspaceButton(pin, onPinChanged)
             }
         }
@@ -336,8 +383,9 @@ class ElicenseAssignmentRenderer : ComposeRenderer<ElicenseAssignmentPresenter.M
             verticalArrangement = Arrangement.Center
         ) {
             CircularProgressIndicator(
+                modifier = Modifier.size(CIRCULAR_PROGRESS_SIZE.dp),
                 color = AppColors.Accent.primary,
-                modifier = Modifier.size(CIRCULAR_PROGRESS_SIZE.dp)
+                strokeWidth = 4.dp
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -494,6 +542,7 @@ class ElicenseAssignmentRenderer : ComposeRenderer<ElicenseAssignmentPresenter.M
     }
 
     private companion object {
+        const val CROSSFADE_DURATION_MS = 200
         const val PIN_LENGTH = 8
         const val KEYPAD_DIGIT_MAX = 9
         const val PIN_INDICATOR_SIZE = 32

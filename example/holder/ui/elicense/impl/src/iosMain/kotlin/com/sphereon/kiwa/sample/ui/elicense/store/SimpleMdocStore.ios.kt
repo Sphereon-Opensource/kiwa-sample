@@ -22,9 +22,24 @@ import io.github.irgaly.kottage.Kottage
 import io.github.irgaly.kottage.KottageEnvironment
 import io.github.irgaly.kottage.platform.KottageContext
 import kotlinx.coroutines.CoroutineScope
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
+import platform.Foundation.NSUserDomainMask
 
 actual fun kottageEnvironment(app: App): KottageEnvironment {
     return KottageEnvironment(KottageContext())
+}
+
+/**
+ * Returns the iOS Documents directory path for persistent storage.
+ */
+private fun getDocumentsDirectoryPath(): String {
+    val fileManager = NSFileManager.defaultManager
+    val urls = fileManager.URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
+    @Suppress("UNCHECKED_CAST")
+    val documentsUrl = (urls as List<NSURL>).firstOrNull() ?: error("Could not find Documents directory")
+    return documentsUrl.path ?: error("Could not get path from Documents URL")
 }
 
 actual fun kottage(
@@ -34,5 +49,6 @@ actual fun kottage(
     environment: KottageEnvironment?,
     directoryPath: String?
 ): Kottage {
-    return Kottage(kottageName, directoryPath ?: "", environment ?: kottageEnvironment(app), scope)
+    val path = directoryPath ?: getDocumentsDirectoryPath()
+    return Kottage(kottageName, path, environment ?: kottageEnvironment(app), scope)
 }

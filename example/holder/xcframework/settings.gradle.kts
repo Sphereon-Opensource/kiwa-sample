@@ -72,10 +72,10 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("sphereonplug") {
-            from("com.sphereon.gradle:gradle-plugin-bom:0.3.2@toml")
+            from("com.sphereon.gradle:gradle-plugin-bom:0.5.0@toml")
         }
         create("sphereonlib") {
-            from("com.sphereon.gradle:library-bom:0.3.2@toml")
+            from("com.sphereon.gradle:library-bom:0.5.0@toml")
         }
         create("libs") {
             from(files("../../../gradle/libs.versions.toml"))

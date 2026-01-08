@@ -97,7 +97,8 @@ class TestPidIssuerImpl(
             alg = SignatureAlgorithm.ECDSA_SHA256,
             keyVisibility = KeyVisibility.PRIVATE
         )
-        managedKeyPair.toManagedKeyInfo<CoseKey>(KeyVisibility.PRIVATE, KeyEncoding.COSE)
+        // Use platform-specific visibility: iOS keychain doesn't expose private key material
+        managedKeyPair.toManagedKeyInfo<CoseKey>(getManagedKeyInfoVisibility(), KeyEncoding.COSE)
     }
 
     private suspend fun getOrCreateIssuerCertificate(issuerKeyInfo: ManagedKeyInfoType<CoseKeyType>): Certificate = withContext(
@@ -457,13 +458,14 @@ class TestPidIssuerImpl(
         coroutineScope {
             // Start device key creation and issuer setup in parallel
             val deviceKeyInfoDeferred = async {
+                // Use platform-specific visibility: iOS keychain doesn't expose private key material
                 deviceKeyInfo ?: kms.generateKeyAsync(
                     providerId = "kiwa",
                     alias = "dk-${Clock.System.now()}",
                     use = JwkUse.sig,
                     alg = SignatureAlgorithm.ECDSA_SHA256,
                     keyVisibility = KeyVisibility.PRIVATE
-                ).toManagedKeyInfo<CoseKey>(KeyVisibility.PRIVATE, KeyEncoding.COSE)
+                ).toManagedKeyInfo<CoseKey>(getManagedKeyInfoVisibility(), KeyEncoding.COSE)
             }
 
             val issuerKeyInfoWithCertDeferred = async { getIssuerKeyInfoWithCert() }

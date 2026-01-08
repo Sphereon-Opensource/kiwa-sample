@@ -39,13 +39,13 @@ class AuthPresenterImpl(
     override fun present(input: Any): AuthPresenter.Model {
         val state = initializeState()
 
-        if (state.screen == Screen.CheckSavedPassword) {
-            state.computeInitial()
-        }
+        println("AuthPresenter: present() called, screen=${state.screen}, onboarded=${state.onboarded}")
 
         val onEvent = createEventHandler(state)
+        val model = createModel(state, onEvent)
+        println("AuthPresenter: Returning model of type ${model::class.simpleName}")
 
-        return createModel(state, onEvent)
+        return model
     }
 
     @Composable
@@ -58,7 +58,29 @@ class AuthPresenterImpl(
         var username by remember { mutableStateOf(storedUsername) }
         var password by remember { mutableStateOf("") }
         var confirmPassword by remember { mutableStateOf<String?>("") }
-        var screen by remember { mutableStateOf(Screen.CheckSavedPassword) }
+
+        // Compute the initial screen directly instead of using CheckSavedPassword + computeInitial()
+        // This avoids the issue where the captured screen value doesn't update after setScreen() is called
+        val initialScreen = remember {
+            println("AuthPresenter: Computing initial screen, onboarded=$onboarded, remember=$storedRemember")
+            when {
+                storedRemember && onboarded && authService.authenticateWithUsernameAndPassword(
+                    storedUsername, "", storedRemember
+                ).isOk -> {
+                    println("AuthPresenter: Initial screen = Login (auto-auth)")
+                    Screen.Login
+                }
+                !onboarded -> {
+                    println("AuthPresenter: Initial screen = CreateAccount (not onboarded)")
+                    Screen.CreateAccount
+                }
+                else -> {
+                    println("AuthPresenter: Initial screen = Login (default)")
+                    Screen.Login
+                }
+            }
+        }
+        var screen by remember { mutableStateOf(initialScreen) }
 
         return PresentState(
             remember = remember,
@@ -219,23 +241,7 @@ class AuthPresenterImpl(
         val setPassword: (String) -> Unit,
         val setConfirmPassword: (String?) -> Unit,
         val setScreen: (Screen) -> Unit
-    ) {
-        fun computeInitial() {
-            val newScreen = if (remember && onboarded && authService.authenticateWithUsernameAndPassword(
-                    username,
-                    password,
-                    remember
-                ).isOk
-            ) {
-                Screen.Login
-            } else if (!onboarded) {
-                Screen.CreateAccount
-            } else {
-                Screen.Login
-            }
-            setScreen(newScreen)
-        }
-    }
+    )
 
     private companion object {
         const val PASSWORD_LENGTH = 6

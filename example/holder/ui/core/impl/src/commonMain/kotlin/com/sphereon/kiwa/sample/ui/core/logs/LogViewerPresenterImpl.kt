@@ -25,12 +25,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.sphereon.core.api.SessionLogManager
-import com.sphereon.core.api.LogLevel
-import com.sphereon.core.log.mobile.MobileLogManager
+import com.sphereon.core.api.log.SessionLogManager
+import com.sphereon.core.api.log.LogLevel
 import com.sphereon.core.log.mobile.MobileLogEntry
 import com.sphereon.core.log.mobile.MobileLogExportOptions
 import com.sphereon.core.log.mobile.MobileLogFilter
+import com.sphereon.core.log.mobile.MobileLogManager
 import com.sphereon.di.session.SessionScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -49,12 +49,9 @@ class LogViewerPresenterImpl(
 
     @Composable
     override fun present(input: Unit): LogViewerPresenter.Model {
-        var allLogs by remember { mutableStateOf<List<MobileLogEntry>>(emptyList()) }
-        var filteredLogs by remember { mutableStateOf<List<MobileLogEntry>>(emptyList()) }
         var selectedLogLevel by remember { mutableStateOf(LogViewerPresenter.LogLevel.ALL) }
         var searchQuery by remember { mutableStateOf("") }
         var isSearchVisible by remember { mutableStateOf(false) }
-        var isLoading by remember { mutableStateOf(true) }
         var exportMessage by remember { mutableStateOf<String?>(null) }
 
         val scope = rememberCoroutineScope()
@@ -62,25 +59,17 @@ class LogViewerPresenterImpl(
         // Clear export message after delay
         SetupExportMessageClearEffect(exportMessage) { exportMessage = null }
 
-        // Collect logs from flow for real-time updates
-        val logsFromFlow by mobileLogManager.logsFlow.collectAsState()
+        // Get logs directly from StateFlow - collectAsState() returns current value synchronously
+        // No need for separate allLogs state variable which caused async update issues
+        val allLogs by mobileLogManager.logsFlow.collectAsState()
 
-        // Update local state when flow emits new logs
-        LaunchedEffect(logsFromFlow) {
-            allLogs = logsFromFlow
+        // Compute filtered logs synchronously
+        val filteredLogs = remember(allLogs, selectedLogLevel, searchQuery) {
+            applyFilters(allLogs, selectedLogLevel, searchQuery)
         }
 
-        // Apply filtering whenever logs, level, or search query changes
-        SetupFilteringEffect(allLogs, selectedLogLevel, searchQuery) { filtered ->
-            filteredLogs = filtered
-            isLoading = false
-        }
-
-        // Initial load
-        SetupInitialLoadEffect { logs ->
-            allLogs = logs
-            isLoading = false
-        }
+        // isLoading is false once we have any logs in the flow
+        val isLoading = allLogs.isEmpty()
 
         val onStateEvent = createStateEventHandler(
             scope = scope,
@@ -93,8 +82,6 @@ class LogViewerPresenterImpl(
             onSelectedLogLevelChange = { selectedLogLevel = it },
             onSearchQueryChange = { searchQuery = it },
             onSearchVisibleChange = { isSearchVisible = it },
-            onAllLogsChange = { allLogs = it },
-            onLoadingChange = { isLoading = it },
             onExportMessageChange = { exportMessage = it }
         )
 
@@ -125,42 +112,6 @@ class LogViewerPresenterImpl(
         }
     }
 
-    @Composable
-    private fun SetupFilteringEffect(
-        allLogs: List<MobileLogEntry>,
-        selectedLogLevel: LogViewerPresenter.LogLevel,
-        searchQuery: String,
-        onFiltered: (List<MobileLogEntry>) -> Unit
-    ) {
-        LaunchedEffect(allLogs, selectedLogLevel, searchQuery) {
-            val filtered = applyFilters(allLogs, selectedLogLevel, searchQuery)
-            onFiltered(filtered)
-        }
-    }
-
-    @Composable
-    @Suppress("TooGenericExceptionCaught", "SwallowedException")
-    private fun SetupInitialLoadEffect(onLogsLoaded: (List<MobileLogEntry>) -> Unit) {
-        LaunchedEffect(Unit) {
-            try {
-                val logs = mobileLogManager.getAllLogs()
-
-                if (logs.isEmpty()) {
-                    // Consider using your app to generate some logs for testing
-                    try {
-                        // Consider using your app to generate some logs for testing
-                    } catch (e: Exception) {
-                        // Error adding test logs - exception handled to prevent detekt violation
-                        // Not logging to prevent recomposition loop
-                    }
-                }
-                onLogsLoaded(logs)
-            } catch (e: Exception) {
-                // Exception handled to prevent detekt violation - not logging to prevent recomposition loop
-                onLogsLoaded(emptyList())
-            }
-        }
-    }
 
     @Suppress("LongParameterList")
     private fun createStateEventHandler(
@@ -174,8 +125,6 @@ class LogViewerPresenterImpl(
         onSelectedLogLevelChange: (LogViewerPresenter.LogLevel) -> Unit,
         onSearchQueryChange: (String) -> Unit,
         onSearchVisibleChange: (Boolean) -> Unit,
-        onAllLogsChange: (List<MobileLogEntry>) -> Unit,
-        onLoadingChange: (Boolean) -> Unit,
         onExportMessageChange: (String?) -> Unit
     ): (LogViewerPresenter.StateEvent) -> Unit = { event ->
         when (event) {
@@ -196,7 +145,7 @@ class LogViewerPresenterImpl(
             }
 
             is LogViewerPresenter.StateEvent.RefreshLogs -> {
-                handleRefreshLogs(scope, mobileLogManager, onAllLogsChange, onLoadingChange)
+                // No-op: logs auto-update via StateFlow.collectAsState()
             }
 
             is LogViewerPresenter.StateEvent.SelectLogLevel -> {
@@ -275,26 +224,6 @@ class LogViewerPresenterImpl(
         }
     }
 
-    @Suppress("TooGenericExceptionCaught", "SwallowedException")
-    private fun handleRefreshLogs(
-        scope: kotlinx.coroutines.CoroutineScope,
-        mobileLogManager: MobileLogManager,
-        onAllLogsChange: (List<MobileLogEntry>) -> Unit,
-        onLoadingChange: (Boolean) -> Unit
-    ) {
-        scope.launch {
-            try {
-                onLoadingChange(true)
-                val logs = mobileLogManager.getAllLogs()
-                onAllLogsChange(logs)
-            } catch (e: Exception) {
-                // Exception handled to prevent detekt violation - not logging to prevent recomposition loop
-                // In production, you might want to show a user-facing error message instead
-            } finally {
-                onLoadingChange(false)
-            }
-        }
-    }
 
     private fun applyFilters(
         logs: List<MobileLogEntry>,

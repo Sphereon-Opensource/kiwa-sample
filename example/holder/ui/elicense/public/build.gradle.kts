@@ -56,7 +56,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.amz.app.platform.presenter.molecule.public)
             implementation(libs.kiwa.holder.sdk.public)
-            implementation(libs.sphereon.mdoc.datatransfer)
+            implementation(libs.sphereon.mdoc.datatransfer.public)
             implementation(projects.example.holder.ui.card.kiwaExampleHolderUiCardPublic)
             implementation(projects.example.holder.ui.core.kiwaExampleHolderUiCorePublic)
         }

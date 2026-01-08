@@ -40,7 +40,7 @@ The main sample application demonstrating:
 ### Prerequisites
 
 * **Development Environment**:
-    - JDK 11 or higher
+    - JDK 17 or higher
     - Android Studio or IntelliJ IDEA
     - Kotlin Multiplatform setup
 
@@ -74,6 +74,17 @@ The main sample application demonstrating:
 5. **Run on iOS**
 
    Open the iOS project in Xcode and run on device or simulator.
+
+6. **Build iOS XCFramework** (optional)
+
+   For iOS distribution, a separate XCFramework build is available. See [XCFramework README](./example/holder/xcframework/README.md) for details.
+
+   ```bash
+   cd example/holder/xcframework
+   ./gradlew assembleXCFrameworkKiwaSdk
+   ```
+
+   > **Note**: The XCFramework build is intentionally separated from the main build due to its long compilation time.
 
 ### Sample Code Examples
 
@@ -141,13 +152,18 @@ For detailed information about the Detekt configuration, see [`config/detekt/REA
 ```
 kiwa-sample/
 ├── example/
-│   └── holder/          # Sample holder/wallet application
-│       ├── app/         # Main application module
-│       └── ui/          # UI components and screens
-├── config/              # Configuration files
-├── gradle/              # Gradle configuration
-└── scripts/             # Utility scripts
+│   └── holder/              # Sample holder/wallet application
+│       ├── app/             # Main application module (Android & iOS)
+│       │   ├── composeApp/  # Kotlin Multiplatform Compose app
+│       │   └── iosApp/      # iOS Xcode project
+│       ├── ui/              # UI components and screens
+│       └── xcframework/     # Standalone XCFramework build (see README)
+├── config/                  # Configuration files
+├── gradle/                  # Gradle configuration
+└── scripts/                 # Utility scripts
 ```
+
+> **Note**: The `xcframework/` directory is a standalone Gradle project excluded from the main build. See [XCFramework README](./example/holder/xcframework/README.md) for build instructions and licensing information.
 
 ## Documentation
 
