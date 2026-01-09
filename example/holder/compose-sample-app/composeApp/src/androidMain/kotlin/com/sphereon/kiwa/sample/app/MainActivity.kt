@@ -1,4 +1,4 @@
-/* * © 2025 Sphereon International B.V. *
+/* * © 2026 Sphereon International B.V. *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,21 +76,6 @@ class MainActivity : ComponentActivity() {
             blePermissionsHelper.onPermissionsResult(result)
         }
 
-    /**
-     * Additional launcher for BLUETOOTH_ADVERTISE permission (Android 12+).
-     *
-     * This is needed because the external BLE permissions helper may not include
-     * BLUETOOTH_ADVERTISE in its permission requests.
-     */
-    private val advertisePermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            val advertiseGranted = result[Manifest.permission.BLUETOOTH_ADVERTISE] ?: false
-            if (advertiseGranted) {
-                println("BLUETOOTH_ADVERTISE permission granted")
-            } else {
-                println("BLUETOOTH_ADVERTISE permission NOT granted")
-            }
-        }
 
     /**
      * Called when the activity is being created.
@@ -112,32 +97,31 @@ class MainActivity : ComponentActivity() {
         // Set up BLE permissions management
         println("MainActivity: Setting up BLE permissions management")
         blePermissionsHelper = AndroidBlePermissionsHelper(app.appComponent)
-        blePermissionsHelper.setLauncher { permissions ->
-            permissionLauncher.launch(permissions)
-        }
 
-        // Request BLE permissions if not already granted
-        if (!blePermissionsHelper.hasPermissions()) {
-            println("Requesting BLE permissions")
-            blePermissionsHelper.requestPermissions { granted ->
-                if (granted) {
-                    println("BLE permissions granted")
-                } else {
-                    println("BLE permissions NOT granted")
-                }
+        // Collect all permissions to request (BLE + notifications)
+        val allPermissionsToRequest = mutableListOf<String>()
+
+        // Add BLE permissions that aren't granted yet
+        val blePermissions = AndroidBlePermissionsHelper.REQUIRED_PERMISSIONS
+        blePermissions.forEach { permission ->
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                allPermissionsToRequest.add(permission)
             }
         }
 
-        // Check and request BLUETOOTH_ADVERTISE permission explicitly for Android 12+
-        // This is needed because the external BLE helper may not include this permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val advertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE
-            if (ContextCompat.checkSelfPermission(this, advertisePermission) != PackageManager.PERMISSION_GRANTED) {
-                println("BLUETOOTH_ADVERTISE permission not granted, requesting it")
-                advertisePermissionLauncher.launch(arrayOf(advertisePermission))
-            } else {
-                println("BLUETOOTH_ADVERTISE permission already granted")
+        // Add POST_NOTIFICATIONS for Android 13+ (needed for foreground service)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                allPermissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+
+        // Request all permissions together in one dialog
+        if (allPermissionsToRequest.isNotEmpty()) {
+            println("Requesting permissions: $allPermissionsToRequest")
+            permissionLauncher.launch(allPermissionsToRequest.toTypedArray())
+        } else {
+            println("All permissions already granted")
         }
 
         println("MainActivity: BLE permissions setup complete")

@@ -1,5 +1,5 @@
 /*
- * © 2025 Sphereon International B.V.
+ * © 2026 Sphereon International B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 package com.sphereon.kiwa.sample.app
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import com.sphereon.di.session.SessionScope
@@ -76,15 +76,11 @@ class RootPresenterImpl(
 
             // Set up the navigation trigger with the current backstack scope
             // This allows background NFC services to push presenters directly to the backstack
-            // IMPORTANT: Use DisposableEffect to avoid recomposition loops and ensure cleanup
-            DisposableEffect(backstackScope) {
+            // Use SideEffect to set the scope on every successful composition
+            // Don't clear on dispose - the registry is a singleton that gets overwritten
+            SideEffect {
                 println("RootPresenter: Setting backstack scope on navigation trigger: $backstackRegistry")
-                println("RootPresenter: Navigation trigger hashCode: ${backstackRegistry.hashCode()}")
                 backstackRegistry.setBackstackScope(backstackScope)
-                onDispose {
-                    println("RootPresenter: Clearing backstack scope from navigation trigger")
-                    backstackRegistry.setBackstackScope(null)
-                }
             }
 
             backstackModelToTemplate(backstackModel)

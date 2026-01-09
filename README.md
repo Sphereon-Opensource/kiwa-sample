@@ -72,6 +72,10 @@ example/holder/swift-sample-app/
     └── PinEntryView.swift
 ```
 
+For detailed documentation, see:
+- [XCFramework README](./example/holder/xcframework/README.md)
+- [CocoaPods Integration Guide](./example/holder/xcframework/COCOAPODS.md)
+
 ### Building
 
 ```bash

@@ -1,5 +1,5 @@
 /*
- * © 2025 Sphereon International B.V.
+ * © 2026 Sphereon International B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ class MdocEngagementPresenterImpl(
                         presenterScope.launch {
                             val engagementResult = engagementManager.createEngagement {
                                 engagement { qr {} }
-                                retrieval { ble { centralClientMode = true; peripheralServerMode = false } }
+                                retrieval { ble { centralClientMode = true; peripheralServerMode = true } }
                             }
                             engagementResult.onSuccess { engagement ->
                                 engagement.start()

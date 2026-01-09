@@ -2,13 +2,36 @@
 
 ## 0.13.0 — 20260108
 
-- Version bump to 0.13.0 of the Kiwa SDK to allign with IDK 0.13.0
 - Based on Kiwa SDK 0.13.0 and Identity Development Kit 0.13.0
+- Version bump to 0.13.0 of the Kiwa SDK to align with IDK 0.13.0
 - minSdk to 30, because of external library dependencies
 - Add sample Swift app, next to the ios and Android compose app
 - XCFramework building added
 - Cocoapods support
-- Removed direct deepencies on the Sphereon Identity Development Kit, as they are exposed via the Kiwa SDK
+- Removed direct dependencies on the Sphereon Identity Development Kit, as they are exposed via the Kiwa SDK
+
+### Breaking Changes
+
+#### IdkResult API Overhaul (from IDK 0.13.0)
+The `IdkResult` type has been completely redesigned for better iOS/Swift/ObjC interoperability:
+- **Changed from typealias to wrapper class**: `IdkResult` is now a proper class wrapping kotlin-result's `Result`, instead of a simple typealias
+- **New `Ok` and `Err` subclasses**: Use `Ok(value)` and `Err(error)` constructors instead of kotlin-result's functions directly
+- **Import changes**: Import `com.sphereon.core.api.Ok` and `com.sphereon.core.api.Err` (top-level functions)
+- **New methods**: `component1()`, `component2()` for destructuring; `getOrThrow()` for exception-based handling
+- **No more need to depend on com.github.michaelbull.result**
+
+**Migration example:**
+```kotlin
+// Old (0.10)
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Err
+return Ok(value)
+
+// New (0.13)
+import com.sphereon.core.api.Ok
+import com.sphereon.core.api.Err
+return Ok(value)
+```
 
 ## 0.1.1 — Internal release
 
