@@ -59,7 +59,7 @@ pod 'KiwaSdk', :podspec => '/path/to/kiwa-sample/example/holder/xcframework/buil
 
 # Option C: Use a private spec repo
 source 'https://github.com/your-org/private-podspecs.git'
-pod 'KiwaSdk', '~> 0.13.0'
+pod 'KiwaSdk', '~> 0.13.1-SNAPSHOT'
 ```
 
 ### 3. Install Dependencies
@@ -78,9 +78,9 @@ If you prefer to integrate the XCFramework directly without CocoaPods:
 ```bash
 # For snapshots
 curl -u "$KIWA_REPO_USER:$KIWA_REPO_PASSWORD" \
-  -O "https://nexus.sphereon.com/repository/kiwa-snapshots/com/sphereon/kiwa/kiwa-sdk-ios/0.13.0/kiwa-sdk-ios-0.13.0.zip"
+  -O "https://nexus.sphereon.com/repository/kiwa-snapshots/com/sphereon/kiwa/kiwa-sdk-ios/0.13.1-SNAPSHOT/kiwa-sdk-ios-0.13.1-SNAPSHOT.zip"
 
-unzip kiwa-sdk-ios-0.13.0.zip
+unzip kiwa-sdk-ios-0.13.1-SNAPSHOT.zip
 ```
 
 ### 2. Add to Xcode Project
