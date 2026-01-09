@@ -78,9 +78,9 @@ If you prefer to integrate the XCFramework directly without CocoaPods:
 ```bash
 # For snapshots
 curl -u "$KIWA_REPO_USER:$KIWA_REPO_PASSWORD" \
-  -O "https://nexus.sphereon.com/repository/kiwa-snapshots/com/sphereon/kiwa/kiwa-sdk-ios/0.13.0-SNAPSHOT/kiwa-sdk-ios-0.13.0-SNAPSHOT.zip"
+  -O "https://nexus.sphereon.com/repository/kiwa-snapshots/com/sphereon/kiwa/kiwa-sdk-ios/0.13.0/kiwa-sdk-ios-0.13.0.zip"
 
-unzip kiwa-sdk-ios-0.13.0-SNAPSHOT.zip
+unzip kiwa-sdk-ios-0.13.0.zip
 ```
 
 ### 2. Add to Xcode Project
