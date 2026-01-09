@@ -18,6 +18,7 @@
 package com.sphereon.kiwa.sample.app
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -75,9 +76,16 @@ class RootPresenterImpl(
 
             // Set up the navigation trigger with the current backstack scope
             // This allows background NFC services to push presenters directly to the backstack
-            println("RootPresenter: Setting backstack scope on navigation trigger: $backstackRegistry")
-            println("RootPresenter: Navigation trigger hashCode: ${backstackRegistry.hashCode()}")
-            backstackRegistry.setBackstackScope(backstackScope)
+            // IMPORTANT: Use DisposableEffect to avoid recomposition loops and ensure cleanup
+            DisposableEffect(backstackScope) {
+                println("RootPresenter: Setting backstack scope on navigation trigger: $backstackRegistry")
+                println("RootPresenter: Navigation trigger hashCode: ${backstackRegistry.hashCode()}")
+                backstackRegistry.setBackstackScope(backstackScope)
+                onDispose {
+                    println("RootPresenter: Clearing backstack scope from navigation trigger")
+                    backstackRegistry.setBackstackScope(null)
+                }
+            }
 
             backstackModelToTemplate(backstackModel)
         }

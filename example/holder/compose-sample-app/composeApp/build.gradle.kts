@@ -21,6 +21,7 @@ import co.touchlab.skie.configuration.SealedInterop
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     alias(sphereonplug.plugins.org.jetbrains.kotlin.multiplatform)
@@ -70,7 +71,8 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
+        // Only build debug framework to avoid slow release linking
+        iosTarget.binaries.framework(listOf(NativeBuildType.DEBUG)) {
             baseName = "KiwaSampleApp"
             isStatic = true
             xcFramework.add(this)

@@ -81,19 +81,22 @@ class MdocEngagementPresenterImpl(
         var sessionState by remember { mutableStateOf(engagementManager.eventHub.sessionState.value) }
         var activeEngagement by remember { mutableStateOf(engagementManager.activeEngagement.value) }
 
-        // Collect session state - the renderer has a keepalive animation that keeps
-        // CADisplayLink firing, ensuring state changes trigger Molecule recomposition
+        // Collect session state from the engagement manager
+        // StateFlow already guarantees distinct values by design
         LaunchedEffect(engagementManager) {
-            engagementManager.eventHub.sessionState.collect { state ->
-                sessionState = state
-            }
+            engagementManager.eventHub.sessionState
+                .collect { state ->
+                    sessionState = state
+                }
         }
 
         // Collect active engagement
+        // StateFlow already guarantees distinct values by design
         LaunchedEffect(engagementManager) {
-            engagementManager.activeEngagement.collect { eng ->
-                activeEngagement = eng
-            }
+            engagementManager.activeEngagement
+                .collect { eng ->
+                    activeEngagement = eng
+                }
         }
 
         // Log the current values on every recomposition for debugging
@@ -102,12 +105,12 @@ class MdocEngagementPresenterImpl(
         // Track QR scanner mode - use rememberSaveable like BackstackChildPresenter for proper state tracking on iOS
         var showQrScanner by rememberSaveable { mutableStateOf(false) }
 
-        // Track recomposition count for debugging - use rememberSaveable for consistency
-        var recompositionCount by rememberSaveable { mutableStateOf(0) }
-        recompositionCount++
+        // Track recomposition count for debugging - use remember with a holder object to avoid state mutation
+        val recompositionCounter = remember { object { var count = 0 } }
+        recompositionCounter.count++
 
         // Log state on every recomposition to understand state transitions
-        log.debug("=== PRESENTER RECOMPOSITION #$recompositionCount ===")
+        log.debug("=== PRESENTER RECOMPOSITION #${recompositionCounter.count} ===")
         log.debug("Engagement Manager Instance: ${engagementManager.hashCode()}")
         log.debug("SessionUiState: phase=${sessionState.phase}, qrMode=${sessionState.qrMode}, nfcMode=${sessionState.nfcMode}, userInteractionRequired=${sessionState.userInteractionRequired}, terminalOutcome=${sessionState.terminalOutcome}")
         log.debug("ActiveEngagement: ${activeEngagement?.id ?: "null"}")
@@ -347,7 +350,8 @@ class MdocEngagementPresenterImpl(
         }
 
         // Track if we've ever had an active engagement in this presenter session
-        val hasHadEngagement = remember { mutableStateOf(false) }
+        // Use a holder object to avoid triggering recomposition when tracking this value
+        val hasHadEngagement = remember { object { var value = false } }
         if (activeEngagement != null && !hasHadEngagement.value) {
             hasHadEngagement.value = true
         }
