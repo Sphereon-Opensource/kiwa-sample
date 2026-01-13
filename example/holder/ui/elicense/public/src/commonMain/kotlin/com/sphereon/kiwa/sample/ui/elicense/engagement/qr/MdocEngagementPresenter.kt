@@ -98,6 +98,26 @@ interface MdocEngagementPresenter : MoleculePresenter<Unit, MdocEngagementPresen
 
         @Immutable
         data class Success(override val onStateEvent: (event: UiStateEvent) -> Unit) : Model
+
+        /**
+         * Error state displayed when engagement fails (e.g., NFC tap too short).
+         */
+        @Immutable
+        data class Error(
+            val errorType: ErrorType,
+            val errorMessage: String,
+            override val onStateEvent: (event: UiStateEvent) -> Unit
+        ) : Model
+    }
+
+    /**
+     * Types of errors that can occur during engagement.
+     */
+    enum class ErrorType {
+        /** NFC tap was too short - reader couldn't complete handover */
+        NFC_TAP_TOO_SHORT,
+        /** General engagement error */
+        GENERAL
     }
 
     sealed interface UiStateEvent {

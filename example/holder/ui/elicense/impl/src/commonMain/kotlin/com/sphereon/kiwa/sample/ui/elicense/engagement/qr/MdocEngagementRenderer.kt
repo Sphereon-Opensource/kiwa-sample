@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -115,6 +116,7 @@ class MdocEngagementRenderer(
                     is MdocEngagementPresenter.Model.Selecting -> RenderSelecting(model, fg)
                     is MdocEngagementPresenter.Model.Sharing -> RenderSharing(model, fg)
                     is MdocEngagementPresenter.Model.Success -> RenderSuccess(model)
+                    is MdocEngagementPresenter.Model.Error -> RenderError(model, fg)
                     is MdocEngagementPresenter.Model.Stopped -> Spacer(modifier = Modifier.height(1.dp))
                 }
             }
@@ -369,6 +371,68 @@ class MdocEngagementRenderer(
     }
 
     @Composable
+    private fun RenderError(model: MdocEngagementPresenter.Model.Error, fg: Color) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Auto-navigate back after delay
+            LaunchedEffect(Unit) {
+                delay(DELAY_ERROR_MS)
+                model.onStateEvent(MdocEngagementPresenter.UiStateEvent.Stopped)
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = true),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(COLOR_CARD_BG)),
+                    modifier = Modifier.padding(SPACING_STANDARD.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(PADDING_CARD.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = "Error",
+                            tint = Color(COLOR_ERROR),
+                            modifier = Modifier.size(ICON_SIZE_SUCCESS.dp)
+                        )
+                        Spacer(Modifier.height(SPACING_STANDARD.dp))
+                        Text(
+                            text = when (model.errorType) {
+                                MdocEngagementPresenter.ErrorType.NFC_TAP_TOO_SHORT -> "NFC Tap Too Short"
+                                MdocEngagementPresenter.ErrorType.GENERAL -> "Error"
+                            },
+                            color = fg,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = FONT_SIZE_TITLE.sp
+                        )
+                        Spacer(Modifier.height(SPACING_TINY.dp))
+                        Text(
+                            text = model.errorMessage,
+                            color = fg.copy(alpha = ALPHA_HIGH),
+                            fontSize = FONT_SIZE_BODY.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(SPACING_STANDARD.dp))
+            Button(
+                onClick = { model.onStateEvent(MdocEngagementPresenter.UiStateEvent.Stopped) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = fg.copy(alpha = BUTTON_ALPHA_LOW),
+                    contentColor = fg
+                ),
+                modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT.dp)
+            ) { Text("Close") }
+        }
+    }
+
+    @Composable
     @Suppress("UnusedParameter") // model parameter required by interface but not used in this implementation
     private fun RenderSharing(model: MdocEngagementPresenter.Model.Sharing, fg: Color) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -408,13 +472,13 @@ class MdocEngagementRenderer(
             // Use ScannerWithPermissions and debounce scan events
             ScannerWithPermissions(
                 onScanned = { result: String ->
-                    println("🔍 Scanner detected QR: '${result.take(50)}...' (length: ${result.length})")
+                    println("Scanner detected QR: '${result.take(50)}...' (length: ${result.length})")
                     if (!hasScanned && result.isNotBlank()) {
-                        println("✓ Passing to callback...")
+                        println("Passing to callback...")
                         hasScanned = true
                         onQrScanned(result)
                     } else {
-                        println("✗ Rejected (hasScanned=$hasScanned, isBlank=${result.isBlank()})")
+                        println("Rejected (hasScanned=$hasScanned, isBlank=${result.isBlank()})")
                     }
                     true // Return true to stop scanning
                 },
@@ -679,6 +743,7 @@ private const val COLOR_PURPLE = 0xFF7C40E8
 private const val COLOR_PURPLE_LIGHT = 0xFF7276F7
 private const val COLOR_ACCENT_BLUE = 0xFF0B81FF
 private const val COLOR_SUCCESS = 0xFF31C26E
+private const val COLOR_ERROR = 0xFFE84040
 private const val COLOR_CARD_BG = 0xFF2F364C
 private const val COLOR_BORDER_GRAY = 0xFF5D6990
 private const val PADDING_HORIZONTAL = 16
@@ -703,6 +768,7 @@ private const val ICON_SIZE_SUCCESS = 64
 private const val FONT_SIZE_TITLE = 24
 private const val FONT_SIZE_BODY = 16
 private const val DELAY_SUCCESS_MS = 1500L
+private const val DELAY_ERROR_MS = 3000L
 private const val SELECTION_PROMPT_HEIGHT = 80
 private const val CORNER_RADIUS = 6
 private const val MINI_CARD_WIDTH = 83

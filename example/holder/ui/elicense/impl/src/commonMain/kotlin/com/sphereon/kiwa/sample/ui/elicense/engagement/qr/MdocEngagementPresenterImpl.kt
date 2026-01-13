@@ -36,6 +36,7 @@ import com.sphereon.mdoc.data.device.DeviceRequest
 import com.sphereon.mdoc.engagement.MdocEngagementManager
 import com.sphereon.mdoc.engagement.QrMode
 import com.sphereon.mdoc.engagement.TerminalOutcome
+import com.sphereon.mdoc.engagement.MdocEngagementState
 import com.sphereon.mdoc.engagement.UiPhase
 import com.sphereon.mdoc.transfer.MapDrivenDocRequestSelector
 import com.sphereon.mdoc.transfer.TransferManager
@@ -80,6 +81,10 @@ class MdocEngagementPresenterImpl(
         // State storage for session and engagement
         var sessionState by remember { mutableStateOf(engagementManager.eventHub.sessionState.value) }
         var activeEngagement by remember { mutableStateOf(engagementManager.activeEngagement.value) }
+        var nfcEngagement by remember { mutableStateOf(engagementManager.nfcEngagement.value) }
+
+        // NFC timeout error state
+        var nfcTimeoutError by remember { mutableStateOf(false) }
 
         // Collect session state from the engagement manager
         // StateFlow already guarantees distinct values by design
@@ -97,6 +102,57 @@ class MdocEngagementPresenterImpl(
                 .collect { eng ->
                     activeEngagement = eng
                 }
+        }
+
+        // Collect NFC engagement separately
+        LaunchedEffect(engagementManager) {
+            engagementManager.nfcEngagement
+                .collect { eng ->
+                    nfcEngagement = eng
+                    // Reset timeout error when NFC engagement changes
+                    if (eng != null) {
+                        nfcTimeoutError = false
+                    }
+                }
+        }
+
+        // NFC-specific timeout: 3 seconds for reader to establish BLE connection
+        // Only applies when we have an NFC engagement in ENGAGEMENT phase (waiting for BLE)
+        // Also applies when a NEW NFC engagement comes in while still in TERMINAL phase from previous timeout
+        val isNewNfcEngagementInTerminal = nfcEngagement?.let { eng ->
+            sessionState.phase == UiPhase.TERMINAL && eng.getCurrentState().order <= MdocEngagementState.START.order
+        } == true
+        val isNfcWaitingForConnection = nfcEngagement != null &&
+            (sessionState.phase == UiPhase.ENGAGEMENT || isNewNfcEngagementInTerminal) &&
+            !nfcTimeoutError
+
+        LaunchedEffect(isNfcWaitingForConnection, nfcEngagement?.id) {
+            if (isNfcWaitingForConnection && nfcEngagement != null) {
+                log.info("NFC engagement detected - starting 3 second connection timeout")
+                kotlinx.coroutines.delay(NFC_CONNECTION_TIMEOUT_MS)
+
+                // Check if connection hasn't been established yet
+                // This can be either:
+                // 1. Phase is still ENGAGEMENT (normal case)
+                // 2. Phase is still TERMINAL and engagement state is still early (new tap after previous timeout)
+                val currentPhase = engagementManager.eventHub.sessionState.value.phase
+                val currentNfcEngagement = engagementManager.nfcEngagement.value
+                val isStillWaiting = currentNfcEngagement?.id == nfcEngagement?.id && when {
+                    currentPhase == UiPhase.ENGAGEMENT -> true
+                    currentPhase == UiPhase.TERMINAL -> {
+                        // Check if engagement state is still early (hasn't progressed to transfer)
+                        currentNfcEngagement?.getCurrentState()?.order?.let { it <= MdocEngagementState.START.order } == true
+                    }
+                    else -> false // TRANSFER phase means connection was established
+                }
+
+                if (isStillWaiting) {
+                    log.warn("NFC connection timeout - tap was too short")
+                    nfcTimeoutError = true
+                    // Close the engagement
+                    engagementManager.closeAll()
+                }
+            }
         }
 
         // Log the current values on every recomposition for debugging
@@ -223,7 +279,7 @@ class MdocEngagementPresenterImpl(
 
         // Handle QR code scanned for reverse engagement (no remember - same pattern as CredentialListPresenterImpl)
         val onQrScanned: (String) -> Unit = { scannedData ->
-                log.info("📷 QR SCANNED! Length: ${scannedData.length}, First 30 chars: '${scannedData.take(30)}'")
+                log.info("QR SCANNED! Length: ${scannedData.length}, First 30 chars: '${scannedData.take(30)}'")
                 log.debug("Full scanned data: $scannedData")
                 when {
                     // 18013-7 website via deeplink/QR
@@ -299,7 +355,7 @@ class MdocEngagementPresenterImpl(
                     }
 
                     else -> {
-                        log.warn("⚠️ Invalid QR code: Expected 'mdoc://', 'mdoc:', or 'mdoc-openid4vp://' - got prefix: ${scannedData.take(20)}")
+                        log.warn("Invalid QR code: Expected 'mdoc://', 'mdoc:', or 'mdoc-openid4vp://' - got prefix: ${scannedData.take(20)}")
                     }
                 }
         }
@@ -363,6 +419,16 @@ class MdocEngagementPresenterImpl(
         // Special case: If TERMINAL state but no active engagement AND we never had an engagement,
         // this is stale state from a previous session - treat as INITIAL with toggle UI
         val model = when {
+            // NFC timeout error takes precedence - show error screen
+            nfcTimeoutError -> {
+                log.debug(">>> Returning Model: ERROR (NFC tap too short)")
+                MdocEngagementPresenter.Model.Error(
+                    errorType = MdocEngagementPresenter.ErrorType.NFC_TAP_TOO_SHORT,
+                    errorMessage = "NFC tap was too short. Please hold your phone to the reader a bit longer.",
+                    onStateEvent = onEvent
+                )
+            }
+
             sessionState.phase == UiPhase.TERMINAL && activeEngagement == null && !hasHadEngagement.value -> {
                 log.debug(">>> Stale TERMINAL state detected (never had engagement in this session) - returning Engagement with toggle")
                 MdocEngagementPresenter.Model.Engagement(
@@ -370,6 +436,22 @@ class MdocEngagementPresenterImpl(
                     engagementEvent = null,
                     showQr = false,
                     showQrScanner = showQrScanner,
+                    onQrScanned = onQrScanned,
+                    onStateEvent = onEvent
+                )
+            }
+
+            // New NFC engagement came in but session state hasn't caught up yet (still TERMINAL from previous)
+            // This happens when a new NFC tap occurs right after a timeout - treat as new engagement
+            sessionState.phase == UiPhase.TERMINAL && nfcEngagement?.let { eng ->
+                eng.getCurrentState().order <= MdocEngagementState.START.order
+            } == true -> {
+                log.debug(">>> New NFC engagement detected while still in TERMINAL phase - returning Engagement")
+                MdocEngagementPresenter.Model.Engagement(
+                    qrImage = null,
+                    engagementEvent = null,
+                    showQr = false,
+                    showQrScanner = false,
                     onQrScanned = onQrScanned,
                     onStateEvent = onEvent
                 )
@@ -505,5 +587,7 @@ class MdocEngagementPresenterImpl(
 
     private companion object {
         const val MIN_DOC_REQUESTS = 1
+        /** NFC connection timeout in milliseconds - short timeout since NFC handover is quick */
+        const val NFC_CONNECTION_TIMEOUT_MS = 3000L
     }
 }

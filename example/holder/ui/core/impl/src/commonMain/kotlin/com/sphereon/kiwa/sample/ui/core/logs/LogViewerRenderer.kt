@@ -208,7 +208,7 @@ class LogViewerRenderer : ComposeRenderer<LogViewerPresenter.Model>() {
     private fun ExportFeedbackTip() {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "💡 Tip: Open any text editor app, paste (Ctrl+V), and save the file.",
+            text = "Tip: Open any text editor app, paste (Ctrl+V), and save the file.",
             color = AppColors.Screen.foreground.copy(alpha = 0.8f),
             fontSize = 10.sp,
             fontStyle = FontStyle.Italic

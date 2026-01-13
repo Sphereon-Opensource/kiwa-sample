@@ -56,7 +56,6 @@ class MdocNfcService : AbstractMdocNfcService() {
 
 
     companion object {
-
         lateinit var app: KiwaSampleApplication
 
         /**

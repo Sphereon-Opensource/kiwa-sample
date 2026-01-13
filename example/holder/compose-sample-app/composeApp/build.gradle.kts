@@ -148,10 +148,11 @@ kotlin {
             implementation(sphereonlib.org.jetbrains.kotlinx.coroutines.core)
             // Kiwa SDK interfaces and common code
             api(libs.kiwa.holder.sdk.public)
-            api(libs.sphereon.mdoc.core.public)
             api(libs.sphereon.mdoc.core.impl)
             api(libs.sphereon.mdoc.datatransfer.public)
-
+            api(libs.sphereon.oauth2.common.impl)
+            api(libs.sphereon.oauth2.client.impl)
+            api(libs.sphereon.openid.oid4vp.holder.impl)
 
             api(libs.amz.app.platform.presenter.molecule.public)
             api(libs.amz.app.platform.renderer.compose.public)
